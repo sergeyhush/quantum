@@ -416,7 +416,7 @@ class QuantumDbPluginV2TestCase(unittest2.TestCase):
     def _do_side_effect(self, patched_plugin, orig, *args, **kwargs):
         """ Invoked by test cases for injecting failures in plugin """
         def second_call(*args, **kwargs):
-            raise AttributeError
+            raise q_exc.QuantumException
         patched_plugin.side_effect = second_call
         return orig(*args, **kwargs)
 
@@ -744,7 +744,7 @@ class TestPortsV2(QuantumDbPluginV2TestCase):
                                                  'test',
                                                  True)
                     # We expect a 500 as we injected a fault in the plugin
-                    self._validate_behavior_on_bulk_failure(res, 'ports')
+                    self._validate_behavior_on_bulk_failure(res, 'ports', 500)
 
     def test_create_ports_bulk_native_plugin_failure(self):
         if self._skip_native_bulk:
@@ -763,7 +763,7 @@ class TestPortsV2(QuantumDbPluginV2TestCase):
                 res = self._create_port_bulk('json', 2, net['network']['id'],
                                              'test', True, context=ctx)
                 # We expect a 500 as we injected a fault in the plugin
-                self._validate_behavior_on_bulk_failure(res, 'ports')
+                self._validate_behavior_on_bulk_failure(res, 'ports', 500)
 
     def test_list_ports(self):
         # for this test we need to enable overlapping ips
@@ -1759,7 +1759,7 @@ class TestNetworksV2(QuantumDbPluginV2TestCase):
                 patched_plugin.side_effect = side_effect
                 res = self._create_network_bulk('json', 2, 'test', True)
                 # We expect a 500 as we injected a fault in the plugin
-                self._validate_behavior_on_bulk_failure(res, 'networks')
+                self._validate_behavior_on_bulk_failure(res, 'networks', 500)
 
     def test_create_networks_bulk_native_plugin_failure(self):
         if self._skip_native_bulk:
@@ -1775,7 +1775,7 @@ class TestNetworksV2(QuantumDbPluginV2TestCase):
             patched_plugin.side_effect = side_effect
             res = self._create_network_bulk('json', 2, 'test', True)
             # We expect a 500 as we injected a fault in the plugin
-            self._validate_behavior_on_bulk_failure(res, 'networks')
+            self._validate_behavior_on_bulk_failure(res, 'networks', 500)
 
     def test_list_networks(self):
         with contextlib.nested(self.network(),
@@ -2004,7 +2004,7 @@ class TestSubnetsV2(QuantumDbPluginV2TestCase):
                                                    net['network']['id'],
                                                    'test')
                 # We expect a 500 as we injected a fault in the plugin
-                self._validate_behavior_on_bulk_failure(res, 'subnets')
+                self._validate_behavior_on_bulk_failure(res, 'subnets', 500)
 
     def test_create_subnets_bulk_native_plugin_failure(self):
         if self._skip_native_bulk:
@@ -2023,7 +2023,7 @@ class TestSubnetsV2(QuantumDbPluginV2TestCase):
                                                'test')
 
                 # We expect a 500 as we injected a fault in the plugin
-                self._validate_behavior_on_bulk_failure(res, 'subnets')
+                self._validate_behavior_on_bulk_failure(res, 'subnets', 500)
 
     def test_delete_subnet(self):
         gateway_ip = '10.0.0.1'
