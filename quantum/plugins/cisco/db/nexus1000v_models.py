@@ -13,9 +13,11 @@
 #    under the License.
 # @author: Sergey Sudakovich, Cisco Systems, Inc.
 
+from sqlalchemy import Column, String, Integer, Enum
+
 from quantum.db import model_base
 from quantum.db import models_v2
-from sqlalchemy import Column, String, Integer, Enum
+
 
 POLICY_TYPE = Enum('network', 'policy')
 SEGMENT_TYPE = Enum('vlan', 'vxlan')
@@ -32,12 +34,12 @@ class NetworkProfile(model_base.BASEV2, models_v2.HasId):
     __tablename__ = 'network_profiles'
 
     name = Column(String(255))
-    segment_type = Column(String(255))
-    segment_range = SEGMENT_TYPE
+    segment_type = SEGMENT_TYPE
+    segment_range = Column(String(255))
     multicast_ip_index = Column(Integer)
     multicast_ip_range = Column(String(255))
 
-    def __init__(self, name, type, index):
+    def __init__(self, name, type, index, range):
         self.name = name
         self.segment_type = type
         self.multicast_ip_index = index
