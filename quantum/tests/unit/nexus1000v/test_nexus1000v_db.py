@@ -16,7 +16,7 @@
 from unittest2 import TestCase
 from quantum.db import api as db
 
-from nexus1000v_models import NetworkProfile
+from quantum.plugins.cisco.db.nexus1000v_db import NetworkProfile
 from quantum.plugins.cisco.db import nexus1000v_db
 
 

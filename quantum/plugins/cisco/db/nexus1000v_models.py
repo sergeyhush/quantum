@@ -19,8 +19,7 @@ from quantum.db import model_base
 from quantum.db import models_v2
 
 
-POLICY_TYPE = Enum('network', 'policy')
-SEGMENT_TYPE = Enum('vlan', 'vxlan')
+SEGMENT_TYPE = Enum('vlan', 'vxlan',)
 
 class NetworkProfile(model_base.BASEV2, models_v2.HasId):
     """
@@ -68,13 +67,14 @@ class PolicyProfile(model_base.BASEV2):
     def __repr__(self):
         return "<PolicyProfile (%s, %s)>" % (self.id, self.name)
 
+POLICY_TYPE = Enum('network', 'policy', primary_key=True)
 
 class ProfileBinding(model_base.BASEV2, models_v2.HasTenant):
     """ Represents a binding of Network Profile or Policy Profile to tenant_id"""
     __tablename__ = 'network_profile_bindings'
 
     policy_type = POLICY_TYPE
-    network_profile_id = Column(String(36), nullable=False)
+    network_profile_id = Column(String(36), nullable=False, primary_key=True)
 
     def __init__(self, policy_type, tenant_id, network_profile_id):
         self.policy_type = policy_type
