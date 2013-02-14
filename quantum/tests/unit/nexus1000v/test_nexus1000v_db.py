@@ -134,13 +134,35 @@ class PolicyProfileTests(TestCase):
             self.fail("Policy Profile (%s) was not deleted" % TEST_POLICY_PROFILE['name'])
 
     def test_update_policy_profile(self):
-        self.fail("test not implemented")
+        TEST_PROFILE_1 = {'name': 'test_profile_1'}
+        profile = self._create_test_profile_if_not_there()
+        updated_profile = nexus1000v_db.create_policy_profile(profile.id, TEST_PROFILE_1)
+        try:
+            self.session.query(PolicyProfile).filter_by(name=profile.name).one()
+        except exc.NoResultFound:
+            pass
+        else:
+            self.fail("Profile name was not updated")
+        self.assertEqual(updated_profile.name, TEST_PROFILE_1['name'])
 
     def test_get_policy_profile(self):
-        self.fail("test not implemented")
+        profile = self._create_test_profile_if_not_there()
+        got_profile = nexus1000v_db.get_policy_profile(profile.id)
+        self.assertEqual(profile.id, got_profile.id)
+        self.assertEqual(profile.name, got_profile.name)
 
     def test_get_all_policy_profiles(self):
-        self.fail("test not implemented")
+        test_profiles = [{'name': 'test_profile1', 'id':'e9dcbd10-76fc-11e2-bcfd-0800200c9a66'},
+                         {'name': 'test_profile2', 'id':'efb30820-76fc-11e2-bcfd-0800200c9a66'},
+                         {'name': 'test_profile3', 'id':'f7bef7e0-76fc-11e2-bcfd-0800200c9a66'},
+                         {'name': 'test_profile4', 'id':'fc628f50-76fc-11e2-bcfd-0800200c9a66'},
+                         {'name': 'test_profile5', 'id':'0139b9e0-76fd-11e2-bcfd-0800200c9a66'},
+                         {'name': 'test_profile6', 'id':'07990b10-76fd-11e2-bcfd-0800200c9a66'},
+                         {'name': 'test_profile7', 'id':'0ca8f8e0-76fd-11e2-bcfd-0800200c9a66'}]
+        [nexus1000v_db.create_network_profile(p) for p in test_profiles]
+        #TODO Fix this test to work with real tenant_td
+        profiles = nexus1000v_db.get_all_policy_profiles(None)
+        self.assertEqual(len(test_profiles), len(profiles))
 
 
 class ProfileBindingTests(TestCase):
