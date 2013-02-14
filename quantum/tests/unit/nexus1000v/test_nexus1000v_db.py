@@ -48,9 +48,11 @@ class NetworkProfileTests(TestCase):
                         _db_profile.multicast_ip_range == db_profile.multicast_ip_range)
 
     def test_delete_network_profile(self):
-        profile = self.session.query(NetworkProfile).filter_by(name=TEST_PROFILE['profile']['name']).one()
-        if not profile:
+        try:
+            profile = self.session.query(NetworkProfile).filter_by(name=TEST_PROFILE['profile']['name']).one()
+        except exc.NoResultFound:
             profile = nexus1000v_db.create_network_profile(TEST_PROFILE)
+
         nexus1000v_db.delete_network_profile(profile.id)
         try:
             _profile = self.session.query(NetworkProfile).filter_by(name=TEST_PROFILE['profile']['name']).one()
