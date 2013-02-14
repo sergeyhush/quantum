@@ -69,7 +69,7 @@ class NetworkProfileTests(TestCase):
         profile = self._create_test_profile_if_not_there()
         updated_profile = nexus1000v_db.update_network_profile(profile.id, TEST_PROFILE_1)
         try:
-            _profile = self.session.query(NetworkProfile).filter_by(name=updated_profile.name).one()
+            _profile = self.session.query(NetworkProfile).filter_by(name=TEST_PROFILE_1['name']).one()
         except exc.NoResultFound:
             pass
         else:
@@ -133,7 +133,7 @@ class ProfileBindingTests(TestCase):
             _binding = self.session.query(ProfileBinding).filter_by(profile_type=profile_type, tenant_id=tenant_id,
                                                                     profile_id=profile_id).one()
         except exc.NoResultFound:
-                _profile = nexus1000v_db.create_profile_binding(tenant_id, profile_id, profile_type)
+            _binding = nexus1000v_db.create_profile_binding(tenant_id, profile_id, profile_type)
         return _binding
 
     def test_create_profile_binding(self):
