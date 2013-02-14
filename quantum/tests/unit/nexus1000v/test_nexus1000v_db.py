@@ -33,9 +33,15 @@ class NetworkProfileTests(TestCase):
                                     'segment_type': 'vlan',
                                      'multicast_ip_range': '200-300'}}
         _db_profile = nexus1000v_db.create_network_profile(test_profile)
+        self.assertIsNotNone(_db_profile)
         db_profile = self.session.query(NetworkProfile).filter_by(name=test_profile['profile']['name']).one()
         self.assertIsNotNone(db_profile)
-        self.assertEqual(_db_profile, db_profile)
+        self.assertTrue(_db_profile.id == db_profile.id and
+                        _db_profile.name == db_profile.name and
+                        _db_profile.segment_type == db_profile.segment_type and
+                        _db_profile.segment_range == db_profile.segment_range and
+                        _db_profile.multicast_ip_index == db_profile.multicast_ip_index and
+                        _db_profile.multicast_ip_range == db_profile.multicast_ip_range)
 
     def test_delete_network_profile(self):
         self.fail("test not implemented")

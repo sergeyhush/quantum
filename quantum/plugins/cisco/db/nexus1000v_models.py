@@ -18,8 +18,9 @@ from sqlalchemy import Column, String, Integer, Enum
 from quantum.db import model_base
 from quantum.db import models_v2
 
+SEGMENT_TYPE = Enum('vlan', 'vxlan')
+POLICY_TYPE = Enum('network', 'policy')
 
-SEGMENT_TYPE = Enum('vlan', 'vxlan',)
 
 class NetworkProfile(model_base.BASEV2, models_v2.HasId):
     """
@@ -33,7 +34,7 @@ class NetworkProfile(model_base.BASEV2, models_v2.HasId):
     __tablename__ = 'network_profiles'
 
     name = Column(String(255))
-    segment_type = SEGMENT_TYPE
+    segment_type = Column(SEGMENT_TYPE, nullable=False)
     segment_range = Column(String(255))
     multicast_ip_index = Column(Integer)
     multicast_ip_range = Column(String(255))
@@ -67,13 +68,12 @@ class PolicyProfile(model_base.BASEV2):
     def __repr__(self):
         return "<PolicyProfile (%s, %s)>" % (self.id, self.name)
 
-POLICY_TYPE = Enum('network', 'policy', primary_key=True)
 
 class ProfileBinding(model_base.BASEV2, models_v2.HasTenant):
     """ Represents a binding of Network Profile or Policy Profile to tenant_id"""
-    __tablename__ = 'network_profile_bindings'
+    __tablename__ = 'profile_bindings'
 
-    policy_type = POLICY_TYPE
+    policy_type = Column(POLICY_TYPE, primary_key=True)
     network_profile_id = Column(String(36), nullable=False, primary_key=True)
 
     def __init__(self, policy_type, tenant_id, network_profile_id):
