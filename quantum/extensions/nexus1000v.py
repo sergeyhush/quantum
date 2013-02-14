@@ -23,7 +23,7 @@ from quantum.api.v2 import attributes
 
 
 
-#TODO this was copied over - fix
+#TODO this was copied over - fix for network and policy profiles
 PROFILE_ID = 'n1kv:profile_id'
 MULTICAST_IP = 'n1kv:multicast_ip'
 
@@ -44,6 +44,7 @@ EXTENDED_ATTRIBUTES_2_0 = {
                      'is_visible': True}
     }
 }
+
 
 class Nexus1000v(extensions.ExtensionDescriptor):
     @classmethod
@@ -72,3 +73,58 @@ class Nexus1000v(extensions.ExtensionDescriptor):
         else:
             return {}
 
+
+class Nexus1000vNetworkProfile(extensions.ExtensionDescriptor):
+    @classmethod
+    def get_name(cls):
+        return "Nexus 1000V Network Profile"
+
+    @classmethod
+    def get_alias(cls):
+        return "network_profile"
+
+    @classmethod
+    def get_description(cls):
+        return "Exposes network profile"
+
+    @classmethod
+    def get_namespace(cls):
+        return "http://docs.openstack.org/ext/network_profile/api/v2.0"
+
+    @classmethod
+    def get_updated(cls):
+        return "2013-02-14T10:00:00-00:00"
+
+    def get_extended_resources(self, version):
+        if version == "2.0":
+            return EXTENDED_ATTRIBUTES_2_0
+        else:
+            return {}
+
+
+class Nexus1000vPolicyProfile(extensions.ExtensionDescriptor):
+    @classmethod
+    def get_name(cls):
+        return "Nexus 1000V Policy Profile"
+
+    @classmethod
+    def get_alias(cls):
+        return "policy_profile"
+
+    @classmethod
+    def get_description(cls):
+        return "Exposes policy profile"
+
+    @classmethod
+    def get_namespace(cls):
+        return "http://docs.openstack.org/ext/policy_profile/api/v2.0"
+
+    @classmethod
+    def get_updated(cls):
+        return "2013-02-14T10:00:00-00:00"
+
+    def get_extended_resources(self, version):
+        if version == "2.0":
+            return EXTENDED_ATTRIBUTES_2_0
+        else:
+            return {}
