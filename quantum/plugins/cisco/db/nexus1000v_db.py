@@ -216,7 +216,7 @@ def create_profile_binding(tenant_id, profile_id, profile_type):
         raise exceptions.QuantumException("Invalid profile type")
     session = db.get_session()
     with session.begin(subtransactions=True):
-        binding = ProfileBinding(profile_type,profile_id, tenant_id)
+        binding = ProfileBinding(profile_type, profile_id, tenant_id)
         session.add(binding)
         return binding
 

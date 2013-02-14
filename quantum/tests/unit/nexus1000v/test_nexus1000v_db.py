@@ -120,11 +120,7 @@ class PolicyProfileTests(TestCase):
         self.assertTrue(_db_profile.id == db_profile.id and _db_profile.name == db_profile.name)
 
     def test_delete_policy_profile(self):
-        try:
-            profile = self.session.query(PolicyProfile).filter_by(name=TEST_POLICY_PROFILE['name']).one()
-        except exc.NoResultFound:
-            profile = nexus1000v_db.create_policy_profile(TEST_POLICY_PROFILE)
-
+        profile = self._create_test_profile_if_not_there()
         nexus1000v_db.delete_policy_profile(profile.id)
         try:
             _profile = self.session.query(PolicyProfile).filter_by(name=TEST_POLICY_PROFILE['name']).one()
@@ -191,7 +187,6 @@ class ProfileBindingTests(TestCase):
             binding = self.session.query(ProfileBinding).filter_by(profile_type=test_profile_type,
                                                                    tenant_id=test_tenant_id,
                                                                    profile_id=test_profile_id).all()
-
         except exc.MultipleResultsFound:
             self.fail("Bindings must be unique")
         except exc.NoResultFound:
@@ -210,4 +205,19 @@ class ProfileBindingTests(TestCase):
         self.assertEqual(binding.profile_type, test_profile_type)
 
     def test_delete_profile_binding(self):
-        self.fail("test not implemented")
+        test_tenant_id = "d434dd90-76ec-11e2-bcfd-0800200c9a66"
+        test_profile_id = "dd7b9741-76ec-11e2-bcfd-0800200c9a66"
+        test_profile_type = "network"
+        binding = self._create_test_binding_if_not_there(test_tenant_id, test_profile_id, test_profile_type)
+        nexus1000v_db.delete_profile_binding(test_tenant_id, test_profile_id)
+        try:
+            self.session.query(ProfileBinding).filter_by(profile_type=test_profile_type,
+                                                         tenant_id=test_tenant_id,
+                                                         profile_id=test_profile_id).all()
+        except exc.NoResultFound:
+            pass
+        except exc.MultipleResultsFound:
+            self.fail("This is very bad - multiple results and should be none")
+        else:
+            self.fail("Profile binding was not deleted")
+
