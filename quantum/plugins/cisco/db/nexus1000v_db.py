@@ -16,9 +16,11 @@
 import logging
 
 from sqlalchemy.orm import exc
+from quantum.common import exceptions
+
 
 from quantum.extensions import profile
-from nexus1000v_models import NetworkProfile, PolicyProfile
+from nexus1000v_models import NetworkProfile, PolicyProfile, ProfileBinding
 import quantum.db.api as db
 from quantum.plugins.cisco.common import cisco_exceptions
 
@@ -177,3 +179,56 @@ def get_policy_profile(id, fields=None):
         return profile
     except exc.NoResultFound:
         raise cisco_exceptions.ProfileIdNotFound(profile_id=id)
+
+
+def create_profile_binding(tenant_id, profile_id, profile_type):
+    """
+    Create Network/Policy Profile binding
+    :param tenant_id:
+    :param profile_id:
+    :param profile_type:
+    :return:
+    """
+    if  profile_type not in ['network', 'policy']:
+        raise exceptions.QuantumException("Invalid profile type")
+    session = db.get_session()
+    with session.begin(subtransactions=True):
+        binding = ProfileBinding(profile_type,profile_id, tenant_id)
+        session.add(binding)
+        return binding
+
+
+def get_profile_binding(tenant_id, profile_id):
+    """
+    Get Network/Policy Profile - Tenant binding
+    :param tenant_id:
+    :param profile_id:
+    :return:
+    """
+    LOG.debug("get_profile_binding()")
+    session = db.get_session()
+    try:
+        binding = session.query(ProfileBinding).filter_by(tenant_id=tenant_id, profile_id=profile_id).one()
+        return binding
+    except exc.NoResultFound:
+        raise exceptions.QuantumException("Profile-Tenant binding not found")
+
+def delete_profile_binding(tenant_id, profile_id):
+    """
+    Delete Policy Binding
+    :param tenant_id:
+    :param profile_id:
+    :return:
+    """
+    LOG.debug("delete_profile_binding()")
+    session = db.get_session()
+    binding = get_profile_binding(tenant_id, profile_id)
+    with session.begin(subtransactions=True):
+        session.delete(binding)
+
+
+
+
+
+
+

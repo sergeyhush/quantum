@@ -100,7 +100,6 @@ class PolicyProfileTests(TestCase):
     def setUp(self):
         nexus1000v_db.initialize()
         self.session = db.get_session()
-        self.fail("test not implemented")
 
     def tearDown(self):
         db.clear_db()
@@ -118,4 +117,22 @@ class PolicyProfileTests(TestCase):
         self.fail("test not implemented")
 
     def test_get_all_policy_profiles(self):
+        self.fail("test not implemented")
+
+
+class ProfileBinding(TestCase):
+    def setUp(self):
+        nexus1000v_db.initialize()
+        self.session = db.get_session()
+
+    def tearDown(self):
+        db.clear_db()
+
+    def test_create_profile_binding(self):
+        self.fail("test not implemented")
+
+    def test_get_profile_binding(self):
+        self.fail("test not implemented")
+
+    def test_delete_profile_binding(self):
         self.fail("test not implemented")

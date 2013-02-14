@@ -19,7 +19,9 @@ from quantum.db import model_base
 from quantum.db import models_v2
 
 SEGMENT_TYPE = Enum('vlan', 'vxlan')
-POLICY_TYPE = Enum('network', 'policy')
+PROFILE_TYPE = Enum('network', 'policy')
+# use this to indicate that tenant_id was not yet set
+TENANT_ID_NOT_SET = '01020304-0506-0708-0901-020304050607'
 
 
 class NetworkProfile(model_base.BASEV2, models_v2.HasId):
@@ -73,13 +75,14 @@ class ProfileBinding(model_base.BASEV2, models_v2.HasTenant):
     """ Represents a binding of Network Profile or Policy Profile to tenant_id"""
     __tablename__ = 'profile_bindings'
 
-    policy_type = Column(POLICY_TYPE, primary_key=True)
-    network_profile_id = Column(String(36), nullable=False, primary_key=True)
+    profile_type = Column(PROFILE_TYPE, primary_key=True)
+    tenant_id = Column(String(36), primary_key=True, default=TENANT_ID_NOT_SET)
+    profile_id = Column(String(36), nullable=False, primary_key=True)
 
-    def __init__(self, policy_type, tenant_id, network_profile_id):
-        self.policy_type = policy_type
+    def __init__(self, profile_type, tenant_id, profile_id):
+        self.profile_type = profile_type
         self.tenant_id = tenant_id
-        self.network_profile_id = network_profile_id
+        self.profile_id = profile_id
 
     def __repr__(self):
-        return "<ProfileBinding (%s, %s, %s)>" % (self.policy_type, self.tenant_id, self.network_profile_id)
+        return "<ProfileBinding (%s, %s, %s)>" % (self.profile_type, self.tenant_id, self.profile_id)
