@@ -188,11 +188,16 @@ class ProfileBindingTests(TestCase):
         nexus1000v_db.create_profile_binding(test_tenant_id, test_profile_id, test_profile_type)
         try:
             #TODO check why .one() is failing
-            self.session.query(ProfileBinding).filter_by(profile_type=test_profile_type, tenant_id=test_tenant_id,
-                                                         profile_id=test_profile_id).all()
+            binding = self.session.query(ProfileBinding).filter_by(profile_type=test_profile_type,
+                                                                   tenant_id=test_tenant_id,
+                                                                   profile_id=test_profile_id).all()
 
+        except exc.MultipleResultsFound:
+            self.fail("Bindings must be unique")
         except exc.NoResultFound:
             self.fail("Could not create Profile Binding")
+        else:
+            self.assertEqual(len(binding), 1)
 
     def test_get_profile_binding(self):
         test_tenant_id = "d434dd90-76ec-11e2-bcfd-0800200c9a66"
