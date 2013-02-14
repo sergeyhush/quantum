@@ -20,9 +20,7 @@ from quantum.db import api as db
 from quantum.plugins.cisco.db.nexus1000v_db import NetworkProfile
 from quantum.plugins.cisco.db import nexus1000v_db
 
-
 TEST_PROFILE = {'name': 'test_profile', 'segment_type': 'vlan', 'multicast_ip_range': '200-300'}
-TEST_PROFILE_1 = {'name': 'test_profile_1'}
 
 
 class NetworkProfileTests(TestCase):
@@ -67,6 +65,7 @@ class NetworkProfileTests(TestCase):
             self.fail("Network Profile (%s) was not deleted" % TEST_PROFILE['name'])
 
     def test_update_network_profile(self):
+        TEST_PROFILE_1 = {'name': 'test_profile_1'}
         profile = self._create_test_profile_if_not_there()
         updated_profile = nexus1000v_db.update_network_profile(profile.id, TEST_PROFILE_1)
         try:
@@ -84,7 +83,17 @@ class NetworkProfileTests(TestCase):
         self.assertEqual(profile.name, got_profile.name)
 
     def test_get_all_network_profiles(self):
-        self.fail("test not implemented")
+        test_profiles = [{'name': 'test_profile1', 'segment_type': 'vlan', 'multicast_ip_range': '200-210'},
+                         {'name': 'test_profile2', 'segment_type': 'vlan', 'multicast_ip_range': '211-220'},
+                         {'name': 'test_profile3', 'segment_type': 'vlan', 'multicast_ip_range': '221-230'},
+                         {'name': 'test_profile4', 'segment_type': 'vlan', 'multicast_ip_range': '231-240'},
+                         {'name': 'test_profile5', 'segment_type': 'vlan', 'multicast_ip_range': '241-250'},
+                         {'name': 'test_profile6', 'segment_type': 'vlan', 'multicast_ip_range': '251-260'},
+                         {'name': 'test_profile7', 'segment_type': 'vlan', 'multicast_ip_range': '261-270'}]
+        [nexus1000v_db.create_network_profile(p) for p in test_profiles]
+        #TODO Fix this test to work with real tenant_td
+        profiles = nexus1000v_db.get_all_network_profiles(None)
+        self.assertEqual(len(test_profiles), len(profiles))
 
 
 class PolicyProfileTests(TestCase):
