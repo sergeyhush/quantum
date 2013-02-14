@@ -15,10 +15,16 @@
 
 from unittest2 import TestCase
 from quantum.db import api as db
+from sqlalchemy.orm import exc
+
 
 from quantum.plugins.cisco.db.nexus1000v_db import NetworkProfile
 from quantum.plugins.cisco.db import nexus1000v_db
 
+
+TEST_PROFILE = {'profile': {'name': 'test_profile',
+                            'segment_type': 'vlan',
+                            'multicast_ip_range': '200-300'}}
 
 class NetworkProfileTests(TestCase):
     def setUp(self):
@@ -29,12 +35,10 @@ class NetworkProfileTests(TestCase):
         db.clear_db()
 
     def test_create_network_profile(self):
-        test_profile = {'profile': {'name': 'test_profile',
-                                    'segment_type': 'vlan',
-                                     'multicast_ip_range': '200-300'}}
-        _db_profile = nexus1000v_db.create_network_profile(test_profile)
+
+        _db_profile = nexus1000v_db.create_network_profile(TEST_PROFILE)
         self.assertIsNotNone(_db_profile)
-        db_profile = self.session.query(NetworkProfile).filter_by(name=test_profile['profile']['name']).one()
+        db_profile = self.session.query(NetworkProfile).filter_by(name=TEST_PROFILE['profile']['name']).one()
         self.assertIsNotNone(db_profile)
         self.assertTrue(_db_profile.id == db_profile.id and
                         _db_profile.name == db_profile.name and
@@ -44,7 +48,16 @@ class NetworkProfileTests(TestCase):
                         _db_profile.multicast_ip_range == db_profile.multicast_ip_range)
 
     def test_delete_network_profile(self):
-        self.fail("test not implemented")
+        profile = self.session.query(NetworkProfile).filter_by(name=TEST_PROFILE['profile']['name']).one()
+        if not profile:
+            profile = nexus1000v_db.create_network_profile(TEST_PROFILE)
+        nexus1000v_db.delete_network_profile(profile.id)
+        try:
+            _profile = self.session.query(NetworkProfile).filter_by(name=TEST_PROFILE['profile']['name']).one()
+        except exc.NoResultFound:
+            pass
+        else:
+            self.fail("Network Profile (%s) was not deleted" % TEST_PROFILE['profile']['name'])
 
     def test_update_network_profile(self):
         self.fail("test not implemented")
