@@ -105,6 +105,13 @@ class PolicyProfileTests(TestCase):
     def tearDown(self):
         db.clear_db()
 
+    def _create_test_profile_if_not_there(self, profile=TEST_POLICY_PROFILE):
+        try:
+            _profile = self.session.query(PolicyProfile).filter_by(name=profile['name']).one()
+        except exc.NoResultFound:
+            _profile = nexus1000v_db.create_policy_profile(profile)
+        return _profile
+
     def test_create_policy_profile(self):
         _db_profile = nexus1000v_db.create_policy_profile(TEST_POLICY_PROFILE)
         self.assertIsNotNone(_db_profile)
@@ -113,7 +120,18 @@ class PolicyProfileTests(TestCase):
         self.assertTrue(_db_profile.id == db_profile.id and _db_profile.name == db_profile.name)
 
     def test_delete_policy_profile(self):
-        self.fail("test not implemented")
+        try:
+            profile = self.session.query(PolicyProfile).filter_by(name=TEST_POLICY_PROFILE['name']).one()
+        except exc.NoResultFound:
+            profile = nexus1000v_db.create_policy_profile(TEST_POLICY_PROFILE)
+
+        nexus1000v_db.delete_policy_profile(profile.id)
+        try:
+            _profile = self.session.query(PolicyProfile).filter_by(name=TEST_POLICY_PROFILE['name']).one()
+        except exc.NoResultFound:
+            pass
+        else:
+            self.fail("Policy Profile (%s) was not deleted" % TEST_POLICY_PROFILE['name'])
 
     def test_update_policy_profile(self):
         self.fail("test not implemented")
