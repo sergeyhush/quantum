@@ -76,9 +76,9 @@ def update_network_profile(id, profile):
     session = db.get_session()
     # _profile = profile['profile']
     with session.begin(subtransactions=True):
-        profile = get_network_profile(id)
-        profile.update(profile)
-        return profile
+        _profile = get_network_profile(id)
+        _profile.update(profile)
+        return _profile
 
 
 def get_network_profile(id, fields=None):
