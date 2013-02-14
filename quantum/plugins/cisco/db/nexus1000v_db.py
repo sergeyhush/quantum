@@ -78,7 +78,7 @@ def update_network_profile(id, profile):
     with session.begin(subtransactions=True):
         _profile = get_network_profile(id)
         _profile.update(profile)
-        session.save(_profile)
+        session.merge(_profile)
         return _profile
 
 
