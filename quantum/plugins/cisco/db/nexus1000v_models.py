@@ -71,7 +71,7 @@ class PolicyProfile(model_base.BASEV2):
         return "<PolicyProfile (%s, %s)>" % (self.id, self.name)
 
 
-class ProfileBinding(model_base.BASEV2, models_v2.HasTenant):
+class ProfileBinding(model_base.BASEV2):
     """ Represents a binding of Network Profile or Policy Profile to tenant_id"""
     __tablename__ = 'profile_bindings'
 
