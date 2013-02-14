@@ -162,7 +162,14 @@ def update_policy_profile(id, profile):
     :param profile:
     :return:
     """
-    pass
+    LOG.debug("update_policy_profile()")
+    session = db.get_session()
+    # _profile = profile['profile']
+    with session.begin(subtransactions=True):
+        _profile = get_policy_profile(id)
+        _profile.update(profile)
+        session.merge(_profile)
+        return _profile
 
 
 def get_policy_profile(id, fields=None):
@@ -181,6 +188,21 @@ def get_policy_profile(id, fields=None):
     except exc.NoResultFound:
         raise cisco_exceptions.ProfileIdNotFound(profile_id=id)
 
+
+def get_all_policy_profiles(tenant_id):
+    """
+    List all policy profiles
+    :param tenant_id:
+    :return:
+    """
+    LOG.debug("get_all_policy_profiles()")
+    session = db.get_session()
+    try:
+        #TODO Filter by tenant id
+        profiles = (session.query(PolicyProfile).all())
+        return profiles
+    except exc.NoResultFound:
+        return []
 
 def create_profile_binding(tenant_id, profile_id, profile_type):
     """
