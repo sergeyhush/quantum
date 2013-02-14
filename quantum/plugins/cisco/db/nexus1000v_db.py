@@ -39,11 +39,11 @@ def create_network_profile(profile):
     :return:
     """
     LOG.debug("create_network_profile()")
-    _profile = profile['profile']
-    _validate_network_profile(_profile)
+    # _profile = profile['profile']
+    _validate_network_profile(profile)
     session = db.get_session()
     with session.begin(subtransactions=True):
-        net_profile = NetworkProfile(_profile['name'], _profile['segment_type'], 0, _profile['multicast_ip_range'])
+        net_profile = NetworkProfile(profile['name'], profile['segment_type'], 0, profile['multicast_ip_range'])
         session.add(net_profile)
         return net_profile
 
@@ -72,10 +72,10 @@ def update_network_profile(id, profile):
     """
     LOG.debug("update_network_profile()")
     session = db.get_session()
-    _profile = profile['profile']
+    # _profile = profile['profile']
     with session.begin(subtransactions=True):
         profile = get_network_profile(id)
-        profile.update(_profile)
+        profile.update(profile)
         return profile
 
 
@@ -129,11 +129,11 @@ def create_policy_profile(profile):
     :return:
     """
     LOG.debug("create_policy_profile()")
-    _profile = profile['profile']
-    _validate_network_profile(_profile)
+    # _profile = profile['profile']
+    _validate_network_profile(profile)
     session = db.get_session()
     with session.begin(subtransactions=True):
-        p_profile = PolicyProfile(_profile['id'], _profile['name'])
+        p_profile = PolicyProfile(profile['id'], profile['name'])
         session.add(p_profile)
         return p_profile
 

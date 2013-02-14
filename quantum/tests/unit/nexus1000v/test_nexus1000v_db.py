@@ -21,10 +21,8 @@ from quantum.plugins.cisco.db.nexus1000v_db import NetworkProfile
 from quantum.plugins.cisco.db import nexus1000v_db
 
 
-TEST_PROFILE = {'profile': {'name': 'test_profile',
-                            'segment_type': 'vlan',
-                            'multicast_ip_range': '200-300'}}
-TEST_PROFILE_1 = {'profile': {'name': 'test_profile_1'}}
+TEST_PROFILE = {'name': 'test_profile', 'segment_type': 'vlan', 'multicast_ip_range': '200-300'}
+TEST_PROFILE_1 = {'name': 'test_profile_1'}
 
 
 class NetworkProfileTests(TestCase):
@@ -37,7 +35,7 @@ class NetworkProfileTests(TestCase):
 
     def _create_test_profile_if_not_there(self, profile=TEST_PROFILE):
         try:
-            _profile = self.session.query(NetworkProfile).filter_by(name=profile['profile']['name']).one()
+            _profile = self.session.query(NetworkProfile).filter_by(name=profile['name']).one()
         except exc.NoResultFound:
             _profile = nexus1000v_db.create_network_profile(profile)
         return _profile
@@ -45,7 +43,7 @@ class NetworkProfileTests(TestCase):
     def test_create_network_profile(self):
         _db_profile = nexus1000v_db.create_network_profile(TEST_PROFILE)
         self.assertIsNotNone(_db_profile)
-        db_profile = self.session.query(NetworkProfile).filter_by(name=TEST_PROFILE['profile']['name']).one()
+        db_profile = self.session.query(NetworkProfile).filter_by(name=TEST_PROFILE['name']).one()
         self.assertIsNotNone(db_profile)
         self.assertTrue(_db_profile.id == db_profile.id and
                         _db_profile.name == db_profile.name and
@@ -56,29 +54,28 @@ class NetworkProfileTests(TestCase):
 
     def test_delete_network_profile(self):
         try:
-            profile = self.session.query(NetworkProfile).filter_by(name=TEST_PROFILE['profile']['name']).one()
+            profile = self.session.query(NetworkProfile).filter_by(name=TEST_PROFILE['name']).one()
         except exc.NoResultFound:
             profile = nexus1000v_db.create_network_profile(TEST_PROFILE)
 
         nexus1000v_db.delete_network_profile(profile.id)
         try:
-            _profile = self.session.query(NetworkProfile).filter_by(name=TEST_PROFILE['profile']['name']).one()
+            _profile = self.session.query(NetworkProfile).filter_by(name=TEST_PROFILE['name']).one()
         except exc.NoResultFound:
             pass
         else:
-            self.fail("Network Profile (%s) was not deleted" % TEST_PROFILE['profile']['name'])
+            self.fail("Network Profile (%s) was not deleted" % TEST_PROFILE['name'])
 
     def test_update_network_profile(self):
         profile = self._create_test_profile_if_not_there()
         updated_profile = nexus1000v_db.update_network_profile(profile.id, TEST_PROFILE_1)
         try:
-            _profile = self.session.query(NetworkProfile).filter_by(name=profile['profile']['name']).one()
+            _profile = self.session.query(NetworkProfile).filter_by(name=profile['name']).one()
         except exc.NoResultFound:
             pass
         else:
             self.fail("Profile name was not updated")
-        self.assertEqual(updated_profile.name, TEST_PROFILE_1['profile']['name'])
-        self.fail("test not implemented")
+        self.assertEqual(updated_profile.name, TEST_PROFILE_1['name'])
 
     def test_get_network_profile(self):
         profile = self._create_test_profile_if_not_there()
@@ -86,4 +83,30 @@ class NetworkProfileTests(TestCase):
         self.assertEqual(profile.id, got_profile.id)
         self.assertEqual(profile.name, got_profile.name)
 
+    def test_get_all_network_profiles(self):
+        self.fail("test not implemented")
 
+
+class PolicyProfileTests(TestCase):
+    def setUp(self):
+        nexus1000v_db.initialize()
+        self.session = db.get_session()
+        self.fail("test not implemented")
+
+    def tearDown(self):
+        db.clear_db()
+
+    def test_create_policy_profile(self):
+        self.fail("test not implemented")
+
+    def test_delete_policy_profile(self):
+        self.fail("test not implemented")
+
+    def test_update_policy_profile(self):
+        self.fail("test not implemented")
+
+    def test_get_policy_profile(self):
+        self.fail("test not implemented")
+
+    def test_get_all_policy_profiles(self):
+        self.fail("test not implemented")
