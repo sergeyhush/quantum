@@ -77,7 +77,7 @@ class ProfileBinding(model_base.BASEV2):
 
     profile_type = Column(PROFILE_TYPE, primary_key=True)
     tenant_id = Column(String(36), primary_key=True, default=TENANT_ID_NOT_SET)
-    profile_id = Column(String(36), nullable=False, primary_key=True)
+    profile_id = Column(String(36), primary_key=True)
 
     def __init__(self, profile_type, tenant_id, profile_id):
         self.profile_type = profile_type

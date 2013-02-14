@@ -235,6 +235,8 @@ def get_profile_binding(tenant_id, profile_id):
         return binding
     except exc.NoResultFound:
         raise exceptions.QuantumException("Profile-Tenant binding not found")
+    except exc.MultipleResultsFound:
+        raise exceptions.QuantumException("Profile-Tenant binding must be unique")
 
 def delete_profile_binding(tenant_id, profile_id):
     """
