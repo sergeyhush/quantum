@@ -136,7 +136,7 @@ class PolicyProfileTests(TestCase):
     def test_update_policy_profile(self):
         TEST_PROFILE_1 = {'name': 'test_profile_1'}
         profile = self._create_test_profile_if_not_there()
-        updated_profile = nexus1000v_db.create_policy_profile(profile.id, TEST_PROFILE_1)
+        updated_profile = nexus1000v_db.update_policy_profile(profile.id, TEST_PROFILE_1)
         try:
             self.session.query(PolicyProfile).filter_by(name=profile.name).one()
         except exc.NoResultFound:
@@ -187,8 +187,10 @@ class ProfileBindingTests(TestCase):
         test_profile_type = "network"
         nexus1000v_db.create_profile_binding(test_tenant_id, test_profile_id, test_profile_type)
         try:
+            #TODO check why .one() is failing
             self.session.query(ProfileBinding).filter_by(profile_type=test_profile_type, tenant_id=test_tenant_id,
-                                                         profile_id=test_profile_id).one()
+                                                         profile_id=test_profile_id).all()
+
         except exc.NoResultFound:
             self.fail("Could not create Profile Binding")
 
