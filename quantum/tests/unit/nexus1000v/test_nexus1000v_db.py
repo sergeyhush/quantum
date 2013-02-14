@@ -17,7 +17,7 @@ from unittest2 import TestCase
 from sqlalchemy.orm import exc
 
 from quantum.db import api as db
-from quantum.plugins.cisco.db.nexus1000v_db import NetworkProfile
+from quantum.plugins.cisco.db.nexus1000v_db import NetworkProfile, ProfileBinding
 from quantum.plugins.cisco.db import nexus1000v_db
 
 TEST_PROFILE = {'name': 'test_profile', 'segment_type': 'vlan', 'multicast_ip_range': '200-300'}
@@ -120,7 +120,7 @@ class PolicyProfileTests(TestCase):
         self.fail("test not implemented")
 
 
-class ProfileBinding(TestCase):
+class ProfileBindingTests(TestCase):
     def setUp(self):
         nexus1000v_db.initialize()
         self.session = db.get_session()
@@ -129,7 +129,15 @@ class ProfileBinding(TestCase):
         db.clear_db()
 
     def test_create_profile_binding(self):
-        self.fail("test not implemented")
+        test_tenant_id = "d434dd90-76ec-11e2-bcfd-0800200c9a66"
+        test_profile_id = "dd7b9741-76ec-11e2-bcfd-0800200c9a66"
+        test_profile_type = "network"
+        nexus1000v_db.create_profile_binding(test_tenant_id, test_profile_id, test_profile_type)
+        try:
+            self.session.query(ProfileBinding).filter_by(profile_type=test_profile_type, tenant_id=test_tenant_id,
+                                                         profile_id=test_profile_id).one()
+        except exc.NoResultFound:
+            self.fail("Could not create Profile Binding")
 
     def test_get_profile_binding(self):
         self.fail("test not implemented")
