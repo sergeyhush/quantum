@@ -69,7 +69,7 @@ class NetworkProfileTests(TestCase):
         profile = self._create_test_profile_if_not_there()
         updated_profile = nexus1000v_db.update_network_profile(profile.id, TEST_PROFILE_1)
         try:
-            _profile = self.session.query(NetworkProfile).filter_by(name=profile['name']).one()
+            _profile = self.session.query(NetworkProfile).filter_by(name=updated_profile.name).one()
         except exc.NoResultFound:
             pass
         else:
@@ -128,6 +128,14 @@ class ProfileBindingTests(TestCase):
     def tearDown(self):
         db.clear_db()
 
+    def _create_test_binding_if_not_there(self, tenant_id, profile_id, profile_type):
+        try:
+            _binding = self.session.query(ProfileBinding).filter_by(profile_type=profile_type, tenant_id=tenant_id,
+                                                                    profile_id=profile_id).one()
+        except exc.NoResultFound:
+                _profile = nexus1000v_db.create_profile_binding(tenant_id, profile_id, profile_type)
+        return _binding
+
     def test_create_profile_binding(self):
         test_tenant_id = "d434dd90-76ec-11e2-bcfd-0800200c9a66"
         test_profile_id = "dd7b9741-76ec-11e2-bcfd-0800200c9a66"
@@ -140,7 +148,14 @@ class ProfileBindingTests(TestCase):
             self.fail("Could not create Profile Binding")
 
     def test_get_profile_binding(self):
-        self.fail("test not implemented")
+        test_tenant_id = "d434dd90-76ec-11e2-bcfd-0800200c9a66"
+        test_profile_id = "dd7b9741-76ec-11e2-bcfd-0800200c9a66"
+        test_profile_type = "network"
+        self._create_test_binding_if_not_there(test_tenant_id, test_profile_id, test_profile_type)
+        binding = nexus1000v_db.get_profile_binding(test_tenant_id,test_profile_id)
+        self.assertEqual(binding.tenant_id, test_tenant_id)
+        self.assertEqual(binding.profile_id, test_profile_id)
+        self.assertEqual(binding.profile_type, test_profile_type)
 
     def test_delete_profile_binding(self):
         self.fail("test not implemented")
