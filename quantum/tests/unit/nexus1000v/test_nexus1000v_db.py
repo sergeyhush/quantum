@@ -69,7 +69,7 @@ class NetworkProfileTests(TestCase):
         profile = self._create_test_profile_if_not_there()
         updated_profile = nexus1000v_db.update_network_profile(profile.id, TEST_PROFILE_1)
         try:
-            _profile = self.session.query(NetworkProfile).filter_by(name=TEST_PROFILE_1['name']).one()
+            self.session.query(NetworkProfile).filter_by(name=profile.name).one()
         except exc.NoResultFound:
             pass
         else:
