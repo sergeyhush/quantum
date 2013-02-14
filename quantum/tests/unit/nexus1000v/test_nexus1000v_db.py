@@ -159,7 +159,7 @@ class PolicyProfileTests(TestCase):
                          {'name': 'test_profile5', 'id':'0139b9e0-76fd-11e2-bcfd-0800200c9a66'},
                          {'name': 'test_profile6', 'id':'07990b10-76fd-11e2-bcfd-0800200c9a66'},
                          {'name': 'test_profile7', 'id':'0ca8f8e0-76fd-11e2-bcfd-0800200c9a66'}]
-        [nexus1000v_db.create_network_profile(p) for p in test_profiles]
+        [nexus1000v_db.create_policy_profile(p) for p in test_profiles]
         #TODO Fix this test to work with real tenant_td
         profiles = nexus1000v_db.get_all_policy_profiles(None)
         self.assertEqual(len(test_profiles), len(profiles))
