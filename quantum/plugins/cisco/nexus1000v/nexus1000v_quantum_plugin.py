@@ -27,10 +27,6 @@ from quantum.openstack.common.rpc import proxy
 from quantum.common import topics
 from quantum.plugins.cisco.common import cisco_constants as const
 from quantum.common import constants as q_const
-
-
-
-
 from quantum.db import db_base_plugin_v2
 from  quantum.plugins.cisco.db import nexus1000v_db
 from quantum.plugins.cisco.n1kv import n1kv_configuration as n1kv_conf

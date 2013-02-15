@@ -298,7 +298,7 @@ def reserve_specific_vxlan(session, vxlan_id):
                      filter_by(vxlan_id=vxlan_id).
                      one())
             if alloc.allocated:
-                raise cisco_exceptions.VxlanIdInUse(vxlan_id=vxlan_id)
+                raise  exceptions.VxlanIdInUse(vxlan_id=vxlan_id)
             LOG.debug("reserving specific vxlan %s from pool" % vxlan_id)
             alloc.allocated = True
         except exc.NoResultFound:
