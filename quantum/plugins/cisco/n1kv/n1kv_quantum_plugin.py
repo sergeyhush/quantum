@@ -201,8 +201,7 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
     # bulk operations. Name mangling is used in order to ensure it
     # is qualified by class
     __native_bulk_support = True
-    supported_extension_aliases = ["provider", "profile", "n1kv_profile",
-                                    "router"]
+    supported_extension_aliases = ["provider", "profile", "n1kv_profile", "network_profile", "policy_profile", "router"]
 
     def __init__(self, configfile=None):
         """

@@ -18,6 +18,7 @@
 # @author: Aruna Kushwaha, Cisco Systems Inc.
 # @author: Abhishek Raut, Cisco Systems Inc.
 # @author: Rudrajit Tapadar, Cisco Systems Inc.
+# @author: Sergey Sudakovich, Cisco Systems Inc.
 
 
 import logging
@@ -28,7 +29,6 @@ from sqlalchemy.sql import and_
 from quantum.common import exceptions as q_exc
 from quantum.db import models_v2
 import quantum.db.api as db
-from quantum.openstack.common import cfg
 from quantum.plugins.cisco.common import cisco_constants as const
 from quantum.plugins.cisco.db import n1kv_models_v2
 from quantum.plugins.cisco.db import n1kv_profile_db
@@ -405,3 +405,204 @@ def add_vm_network(name, profile_id, network_id):
     with session.begin(subtransactions=True):
         vm_network = n1kv_models_v2.N1kVmNetwork(name, profile_id, network_id)
         session.add(vm_network)
+
+def create_network_profile(profile):
+    """
+     Create Network Profile
+
+    :param profile:
+    :return:
+    """
+    LOG.debug("create_network_profile()")
+    session = db.get_session()
+    with session.begin(subtransactions=True):
+        net_profile = n1kv_models_v2.NetworkProfile(profile['name'], profile['segment_type'], 0, profile['multicast_ip_range'])
+        session.add(net_profile)
+        return net_profile
+
+
+def delete_network_profile(id):
+    """
+    Delete Network Profile
+
+    :param id:
+    :return:
+    """
+    LOG.debug("delete_network_profile()")
+    session = db.get_session()
+    profile = get_network_profile(id)
+    with session.begin(subtransactions=True):
+        session.delete(profile)
+
+
+def update_network_profile(id, profile):
+    """
+    Update Network Profile
+
+    :param id:
+    :param profile:
+    :return:
+    """
+    LOG.debug("update_network_profile()")
+    session = db.get_session()
+    with session.begin(subtransactions=True):
+        _profile = get_network_profile(id)
+        _profile.update(profile)
+        session.merge(_profile)
+        return _profile
+
+
+def get_network_profile(id, fields=None):
+    """
+    Get Network Profile
+    :param id:
+    :param fields:
+    :return:
+    """
+    LOG.debug("get_network_profile()")
+    session = db.get_session()
+    try:
+        profile = session.query(n1kv_models_v2.NetworkProfile).filter_by(id=id).one()
+        return profile
+    except exc.NoResultFound:
+        raise c_exc.ProfileIdNotFound(profile_id=id)
+
+
+def get_all_network_profiles(tenant_id):
+    """
+    List all network profiles
+    :param tenant_id:
+    :return:
+    """
+    LOG.debug("get_all_network_profiles()")
+    session = db.get_session()
+    try:
+        #TODO Filter by tenant id
+        profiles = (session.query(n1kv_models_v2.NetworkProfile).all())
+        return profiles
+    except exc.NoResultFound:
+        return []
+
+def create_policy_profile(profile):
+    """
+     Create Policy Profile
+
+    :param profile:
+    :return:
+    """
+    LOG.debug("create_policy_profile()")
+    session = db.get_session()
+    with session.begin(subtransactions=True):
+        p_profile = n1kv_models_v2.PolicyProfile(profile['id'], profile['name'])
+        session.add(p_profile)
+        return p_profile
+
+
+def delete_policy_profile(id):
+    """
+    Delete Policy Profile
+
+    :param id:
+    :return:
+    """
+    LOG.debug("delete_policy_profile()")
+    session = db.get_session()
+    profile = get_policy_profile(id)
+    with session.begin(subtransactions=True):
+        session.delete(profile)
+
+def update_policy_profile(id, profile):
+    """
+
+    :param context:
+    :param id:
+    :param profile:
+    :return:
+    """
+    LOG.debug("update_policy_profile()")
+    session = db.get_session()
+    with session.begin(subtransactions=True):
+        _profile = get_policy_profile(id)
+        _profile.update(profile)
+        session.merge(_profile)
+        return _profile
+
+
+def get_policy_profile(id, fields=None):
+    """
+    Get Policy Profile
+
+    :param id:
+    :param fields:
+    :return:
+    """
+    LOG.debug("get_policy_profile()")
+    session = db.get_session()
+    try:
+        profile = session.query(n1kv_models_v2.PolicyProfile).filter_by(id=id).one()
+        return profile
+    except exc.NoResultFound:
+        raise c_exc.ProfileIdNotFound(profile_id=id)
+
+
+def get_all_policy_profiles(tenant_id):
+    """
+    List all policy profiles
+    :param tenant_id:
+    :return:
+    """
+    LOG.debug("get_all_policy_profiles()")
+    session = db.get_session()
+    try:
+        #TODO Filter by tenant id
+        profiles = (session.query(n1kv_models_v2.PolicyProfile).all())
+        return profiles
+    except exc.NoResultFound:
+        return []
+
+def create_profile_binding(tenant_id, profile_id, profile_type):
+    """
+    Create Network/Policy Profile binding
+    :param tenant_id:
+    :param profile_id:
+    :param profile_type:
+    :return:
+    """
+    if  profile_type not in ['network', 'policy']:
+        raise q_exc.QuantumException("Invalid profile type")
+    session = db.get_session()
+    with session.begin(subtransactions=True):
+        binding = n1kv_models_v2.ProfileBinding(profile_type, profile_id, tenant_id)
+        session.add(binding)
+        return binding
+
+
+def get_profile_binding(tenant_id, profile_id):
+    """
+    Get Network/Policy Profile - Tenant binding
+    :param tenant_id:
+    :param profile_id:
+    :return:
+    """
+    LOG.debug("get_profile_binding()")
+    session = db.get_session()
+    try:
+        binding = session.query(n1kv_models_v2.ProfileBinding).filter_by(tenant_id=tenant_id, profile_id=profile_id).one()
+        return binding
+    except exc.NoResultFound:
+        raise q_exc.QuantumException("Profile-Tenant binding not found")
+    except exc.MultipleResultsFound:
+        raise q_exc.QuantumException("Profile-Tenant binding must be unique")
+
+def delete_profile_binding(tenant_id, profile_id):
+    """
+    Delete Policy Binding
+    :param tenant_id:
+    :param profile_id:
+    :return:
+    """
+    LOG.debug("delete_profile_binding()")
+    session = db.get_session()
+    binding = get_profile_binding(tenant_id, profile_id)
+    with session.begin(subtransactions=True):
+        session.delete(binding)
