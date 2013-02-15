@@ -457,7 +457,7 @@ class ProfileBindingTests(unittest2.TestCase):
         try:
             self.session.query(ProfileBinding).filter_by(profile_type=test_profile_type,
                                                          tenant_id=test_tenant_id,
-                                                         profile_id=test_profile_id).all()
+                                                         profile_id=test_profile_id).one()
         except s_exc.NoResultFound:
             pass
         except s_exc.MultipleResultsFound:
