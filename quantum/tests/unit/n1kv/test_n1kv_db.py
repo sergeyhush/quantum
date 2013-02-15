@@ -203,8 +203,9 @@ class TunnelAllocationsTest(unittest2.TestCase):
 
     def test_tunnel_pool(self):
         tunnel_ids = set()
+        profile = NetworkProfileTests.create_test_profile_if_not_there()
         for x in xrange(TUN_MIN, TUN_MAX + 1):
-            tunnel_id = n1kv_db_v2.reserve_vxlan(self.session)
+            tunnel_id = n1kv_db_v2.reserve_vxlan(self.session, profile)
             self.assertGreaterEqual(tunnel_id, TUN_MIN)
             self.assertLessEqual(tunnel_id, TUN_MAX)
             tunnel_ids.add(tunnel_id)
@@ -275,7 +276,8 @@ class NetworkProfileTests(unittest2.TestCase):
     def tearDown(self):
         db.clear_db()
 
-    def _create_test_profile_if_not_there(self, profile=TEST_NETWORK_PROFILE):
+    @staticmethod
+    def create_test_profile_if_not_there(self, profile=TEST_NETWORK_PROFILE):
         try:
             _profile = self.session.query(NetworkProfile).filter_by(name=profile['name']).one()
         except s_exc.NoResultFound:
@@ -310,7 +312,7 @@ class NetworkProfileTests(unittest2.TestCase):
 
     def test_update_network_profile(self):
         TEST_PROFILE_1 = {'name': 'test_profile_1'}
-        profile = self._create_test_profile_if_not_there()
+        profile = self.create_test_profile_if_not_there()
         updated_profile = n1kv_db_v2.update_network_profile(profile.id, TEST_PROFILE_1)
         try:
             self.session.query(NetworkProfile).filter_by(name=profile.name).one()
@@ -321,7 +323,7 @@ class NetworkProfileTests(unittest2.TestCase):
         self.assertEqual(updated_profile.name, TEST_PROFILE_1['name'])
 
     def test_get_network_profile(self):
-        profile = self._create_test_profile_if_not_there()
+        profile = self.create_test_profile_if_not_there()
         got_profile = n1kv_db_v2.get_network_profile(profile.id)
         self.assertEqual(profile.id, got_profile.id)
         self.assertEqual(profile.name, got_profile.name)
@@ -348,7 +350,8 @@ class PolicyProfileTests(unittest2.TestCase):
     def tearDown(self):
         db.clear_db()
 
-    def _create_test_profile_if_not_there(self, profile=TEST_POLICY_PROFILE):
+    @staticmethod
+    def create_test_profile_if_not_there(self, profile=TEST_POLICY_PROFILE):
         try:
             _profile = self.session.query(PolicyProfile).filter_by(name=profile['name']).one()
         except s_exc.NoResultFound:
@@ -363,7 +366,7 @@ class PolicyProfileTests(unittest2.TestCase):
         self.assertTrue(_db_profile.id == db_profile.id and _db_profile.name == db_profile.name)
 
     def test_delete_policy_profile(self):
-        profile = self._create_test_profile_if_not_there()
+        profile = self.create_test_profile_if_not_there()
         n1kv_db_v2.delete_policy_profile(profile.id)
         try:
             _profile = self.session.query(PolicyProfile).filter_by(name=TEST_POLICY_PROFILE['name']).one()
@@ -374,7 +377,7 @@ class PolicyProfileTests(unittest2.TestCase):
 
     def test_update_policy_profile(self):
         TEST_PROFILE_1 = {'name': 'test_profile_1'}
-        profile = self._create_test_profile_if_not_there()
+        profile = self.create_test_profile_if_not_there()
         updated_profile = n1kv_db_v2.update_policy_profile(profile.id, TEST_PROFILE_1)
         try:
             self.session.query(PolicyProfile).filter_by(name=profile.name).one()
@@ -385,7 +388,7 @@ class PolicyProfileTests(unittest2.TestCase):
         self.assertEqual(updated_profile.name, TEST_PROFILE_1['name'])
 
     def test_get_policy_profile(self):
-        profile = self._create_test_profile_if_not_there()
+        profile = self.create_test_profile_if_not_there()
         got_profile = n1kv_db_v2.get_policy_profile(profile.id)
         self.assertEqual(profile.id, got_profile.id)
         self.assertEqual(profile.name, got_profile.name)
@@ -429,7 +432,7 @@ class ProfileBindingTests(unittest2.TestCase):
             #TODO check why .one() is failing
             binding = self.session.query(ProfileBinding).filter_by(profile_type=test_profile_type,
                                                                    tenant_id=test_tenant_id,
-                                                                   profile_id=test_profile_id).all()
+                                                                   profile_id=test_profile_id).one()
         except s_exc.MultipleResultsFound:
             self.fail("Bindings must be unique")
         except s_exc.NoResultFound:

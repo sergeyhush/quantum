@@ -161,3 +161,11 @@ class ProfileAlreadyExists(exceptions.QuantumException):
 class ProfileIdNotFound(exceptions.QuantumException):
     """Profile cannot be found"""
     message = _("Profile %(profile_id)s could not be found ")
+
+
+class VxlanIdInUse(exceptions.QuantumException):
+    """
+    VXLAN Id is in use
+    """
+    message = _("Unable to create the network. "
+                "The VXLAN ID %(vxlan_id)s is in use.")

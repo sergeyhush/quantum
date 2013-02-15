@@ -181,7 +181,7 @@ def reserve_vxlan(session, profile):
             return (physical_network, segment_type,
                     segment_id, profile.get_multicast_ip(session))
         except exc.NoResultFound:
-            raise q_exc.VxlanIdInUse(vxlan_id=segment_id)
+            raise c_exc.VxlanIdInUse(vxlan_id=segment_id)
 
 
 def alloc_network(session, profile_id):
@@ -301,7 +301,7 @@ def reserve_specific_vxlan(session, vxlan_id):
                      filter_by(vxlan_id=vxlan_id).
                      one())
             if alloc.allocated:
-                raise q_exc.VxlanIdInUse(vxlan_id=vxlan_id)
+                raise c_exc.VxlanIdInUse(vxlan_id=vxlan_id)
             LOG.debug("reserving specific vxlan %s from pool" % vxlan_id)
             alloc.allocated = True
         except exc.NoResultFound:
@@ -572,7 +572,7 @@ def create_profile_binding(tenant_id, profile_id, profile_type):
         raise q_exc.QuantumException("Invalid profile type")
     session = db.get_session()
     with session.begin(subtransactions=True):
-        binding = n1kv_models_v2.ProfileBinding(profile_type, profile_id, tenant_id)
+        binding = n1kv_models_v2.ProfileBinding(profile_type=profile_type, profile_id=profile_id, tenant_id=tenant_id)
         session.add(binding)
         return binding
 
