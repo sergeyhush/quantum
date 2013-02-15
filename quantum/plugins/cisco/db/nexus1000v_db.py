@@ -17,10 +17,13 @@ import logging
 
 from sqlalchemy.orm import exc
 from quantum.common import exceptions
+from sqlalchemy.sql import and_
+from quantum.db import models_v2
+
 
 
 from quantum.extensions import profile
-from nexus1000v_models import NetworkProfile, PolicyProfile, ProfileBinding
+from nexus1000v_models import NetworkProfile, PolicyProfile, ProfileBinding, N1kvVxlanAllocation, N1kvVxlanEndpoint
 import quantum.db.api as db
 from quantum.plugins.cisco.common import cisco_exceptions
 
@@ -251,9 +254,187 @@ def delete_profile_binding(tenant_id, profile_id):
     with session.begin(subtransactions=True):
         session.delete(binding)
 
+def release_vxlan(session, vxlan_id, vxlan_id_ranges):
+    with session.begin(subtransactions=True):
+        try:
+            alloc = (session.query(N1kvVxlanAllocation).
+                     filter_by(vxlan_id=vxlan_id).
+                     one())
+            alloc.allocated = False
+            inside = False
+            for vxlan_id_range in vxlan_id_ranges:
+                if (vxlan_id >= vxlan_id_range[0]
+                    and vxlan_id <= vxlan_id_range[1]):
+                    inside = True
+                    break
+            if not inside:
+                session.delete(alloc)
+            LOG.debug("releasing vxlan %s %s pool" %
+                      (vxlan_id, inside and "to" or "outside"))
+        except exc.NoResultFound:
+            LOG.warning("vxlan_id %s not found" % vxlan_id)
+
+def reserve_vxlan(session, profile):
+    seg_min, seg_max = profile.get_segment_range(session)
+    segment_type = 'vxlan'
+    physical_network = ""
+
+    with session.begin(subtransactions=True):
+        try:
+            alloc = (session.query(N1kvVxlanAllocation).filter(and_(N1kvVxlanAllocation.vxlan_id >= seg_min,
+                                                                    N1kvVxlanAllocation.vxlan_id <= seg_max,
+                                                                    N1kvVxlanAllocation.allocated == False)).first())
+            segment_id = alloc.vxlan_id
+            alloc.allocated = True
+            return (physical_network, segment_type,
+                    segment_id, profile.get_multicast_ip(session))
+        except exc.NoResultFound:
+            raise cisco_exceptions.VxlanIdInUse(vxlan_id=segment_id)
+
+def reserve_specific_vxlan(session, vxlan_id):
+    with session.begin(subtransactions=True):
+        try:
+            alloc = (session.query(N1kvVxlanAllocation).
+                     filter_by(vxlan_id=vxlan_id).
+                     one())
+            if alloc.allocated:
+                raise cisco_exceptions.VxlanIdInUse(vxlan_id=vxlan_id)
+            LOG.debug("reserving specific vxlan %s from pool" % vxlan_id)
+            alloc.allocated = True
+        except exc.NoResultFound:
+            LOG.debug("reserving specific vxlan %s outside pool" % vxlan_id)
+            alloc = N1kvVxlanAllocation(vxlan_id)
+            alloc.allocated = True
+            session.add(alloc)
+
+def get_vxlan_allocation(vxlan_id):
+    session = db.get_session()
+    try:
+        alloc = (session.query(N1kvVxlanAllocation).
+                 filter_by(vxlan_id=vxlan_id).
+                 one())
+        return alloc
+    except exc.NoResultFound:
+        return
+
+def sync_vxlan_allocations(vxlan_id_ranges):
+    """Synchronize vxlan_allocations table with configured vxlan ranges"""
+
+    # determine current configured allocatable vxlans
+    vxlan_ids = set()
+    for vxlan_id_range in vxlan_id_ranges:
+        tun_min, tun_max = vxlan_id_range
+        if tun_max + 1 - tun_min > 1000000:
+            LOG.error("Skipping unreasonable vxlan ID range %s:%s" %
+                      vxlan_id_range)
+        else:
+            vxlan_ids |= set(xrange(tun_min, tun_max + 1))
+
+    session = db.get_session()
+    with session.begin():
+        # remove from table unallocated vxlans not currently allocatable
+        allocs = (session.query(N1kvVxlanAllocation).all())
+        for alloc in allocs:
+            try:
+                # see if vxlan is allocatable
+                vxlan_ids.remove(alloc.vxlan_id)
+            except KeyError:
+                # it's not allocatable, so check if its allocated
+                if not alloc.allocated:
+                    # it's not, so remove it from table
+                    LOG.debug("removing vxlan %s from pool" %
+                              alloc.vxlan_id)
+                    session.delete(alloc)
+
+        # add missing allocatable vxlans to table
+        for vxlan_id in sorted(vxlan_ids):
+            alloc = N1kvVxlanAllocation(vxlan_id)
+            session.add(alloc)
 
 
+def _generate_vxlan_id(session):
+    try:
+        vxlans = session.query(N1kvVxlanEndpoint).all()
+    except exc.NoResultFound:
+        return 0
+    vxlan_ids = ([vxlan['id'] for vxlan in vxlans])
+    if vxlan_ids:
+        id = max(vxlan_ids)
+    else:
+        id = 0
+    return id + 1
 
 
+def add_vxlan_endpoint(ip):
+    session = db.get_session()
+    try:
+        vxlan = (session.query(N1kvVxlanEndpoint).
+                 filter_by(ip_address=ip).one())
+    except exc.NoResultFound:
+        id = _generate_vxlan_id(session)
+        vxlan = N1kvVxlanEndpoint(ip, id)
+        session.add(vxlan)
+        session.flush()
+    return vxlan
+
+def get_vxlan_endpoints():
+    """
+
+    :return:
+    """
+    session = db.get_session()
+    try:
+        vxlans = session.query(N1kvVxlanEndpoint).all()
+    except exc.NoResultFound:
+        return []
+    return [{'id': vxlan.id,
+             'ip_address': vxlan.ip_address} for vxlan in vxlans]
+
+def get_port(port_id):
+    """
+
+    :param port_id:
+    :return:
+    """
+    session = db.get_session()
+    try:
+        port = session.query(models_v2.Port).filter_by(id=port_id).one()
+    except exc.NoResultFound:
+        port = None
+    return port
+
+
+def set_port_status(port_id, status):
+    """
+
+    :param port_id:
+    :param status:
+    :return:
+    """
+    session = db.get_session()
+    try:
+        port = session.query(models_v2.Port).filter_by(id=port_id).one()
+        port['status'] = status
+        session.merge(port)
+        session.flush()
+    except exc.NoResultFound:
+        raise exceptions.PortNotFound(port_id=port_id)
+
+
+def set_port_status(port_id, status):
+    """
+
+    :param port_id:
+    :param status:
+    :return:
+    """
+    session = db.get_session()
+    try:
+        port = session.query(models_v2.Port).filter_by(id=port_id).one()
+        port['status'] = status
+        session.merge(port)
+        session.flush()
+    except exc.NoResultFound:
+        raise exceptions.PortNotFound(port_id=port_id)
 
 

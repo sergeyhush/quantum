@@ -45,35 +45,6 @@ EXTENDED_ATTRIBUTES_2_0 = {
     }
 }
 
-
-class Nexus1000v(extensions.ExtensionDescriptor):
-    @classmethod
-    def get_name(cls):
-        return "n1kv_profile"
-
-    @classmethod
-    def get_alias(cls):
-        return "n1kv_profile"
-
-    @classmethod
-    def get_description(cls):
-        return "Expose network profile"
-
-    @classmethod
-    def get_namespace(cls):
-        return "http://docs.openstack.org/ext/n1kv_profile/api/v2.0"
-
-    @classmethod
-    def get_updated(cls):
-        return "2012-11-15T10:00:00-00:00"
-
-    def get_extended_resources(self, version):
-        if version == "2.0":
-            return EXTENDED_ATTRIBUTES_2_0
-        else:
-            return {}
-
-
 class Nexus1000vNetworkProfile(extensions.ExtensionDescriptor):
     @classmethod
     def get_name(cls):
@@ -96,10 +67,12 @@ class Nexus1000vNetworkProfile(extensions.ExtensionDescriptor):
         return "2013-02-14T10:00:00-00:00"
 
     def get_extended_resources(self, version):
-        if version == "2.0":
-            return EXTENDED_ATTRIBUTES_2_0
-        else:
-            return {}
+        return {}
+        # We might not need them
+        # if version == "2.0":
+        #     return EXTENDED_ATTRIBUTES_2_0
+        # else:
+        #     return {}
 
 
 class Nexus1000vPolicyProfile(extensions.ExtensionDescriptor):
@@ -124,7 +97,9 @@ class Nexus1000vPolicyProfile(extensions.ExtensionDescriptor):
         return "2013-02-14T10:00:00-00:00"
 
     def get_extended_resources(self, version):
-        if version == "2.0":
-            return EXTENDED_ATTRIBUTES_2_0
-        else:
-            return {}
+        return {}
+        # We might not need them
+        # if version == "2.0":
+        #     return EXTENDED_ATTRIBUTES_2_0
+        # else:
+        #     return {}

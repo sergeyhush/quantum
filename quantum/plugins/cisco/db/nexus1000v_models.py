@@ -13,7 +13,7 @@
 #    under the License.
 # @author: Sergey Sudakovich, Cisco Systems, Inc.
 
-from sqlalchemy import Column, String, Integer, Enum
+from sqlalchemy import Column, String, Integer, Enum, Boolean
 
 from quantum.db import model_base
 from quantum.db import models_v2
@@ -23,6 +23,53 @@ PROFILE_TYPE = Enum('network', 'policy')
 # use this to indicate that tenant_id was not yet set
 TENANT_ID_NOT_SET = '01020304-0506-0708-0901-020304050607'
 
+
+class N1kvVlanAllocation(model_base.BASEV2):
+    """Represents allocation state of vlan_id on physical network"""
+    __tablename__ = 'n1kv_vlan_allocations'
+
+    physical_network = Column(String(64), nullable=False, primary_key=True)
+    vlan_id = Column(Integer, nullable=False, primary_key=True,
+                     autoincrement=False)
+    allocated = Column(Boolean, nullable=False)
+
+    def __init__(self, physical_network, vlan_id):
+        self.physical_network = physical_network
+        self.vlan_id = vlan_id
+        self.allocated = False
+
+    def __repr__(self):
+        return "<VlanAllocation(%s,%d,%s)>" % (self.physical_network,
+                                               self.vlan_id, self.allocated)
+
+class N1kvVxlanAllocation(model_base.BASEV2):
+    """Represents allocation state of vxlan_id"""
+    __tablename__ = 'n1kv_vxlan_allocations'
+
+    vxlan_id = Column(Integer, nullable=False, primary_key=True,
+                      autoincrement=False)
+    allocated = Column(Boolean, nullable=False)
+
+    def __init__(self, vxlan_id):
+        self.vxlan_id = vxlan_id
+        self.allocated = False
+
+    def __repr__(self):
+        return "<VxlanAllocation(%d,%s)>" % (self.vxlan_id, self.allocated)
+
+class N1kvVxlanEndpoint(model_base.BASEV2):
+    """Represents vxlan endpoint in RPC mode"""
+    __tablename__ = 'n1kv_vxlan_endpoints'
+
+    ip_address = Column(String(64), primary_key=True)
+    id = Column(Integer, nullable=False)
+
+    def __init__(self, ip_address, id):
+        self.ip_address = ip_address
+        self.id = id
+
+    def __repr__(self):
+        return "<VxlanEndpoint(%s,%s)>" % (self.ip_address, self.id)
 
 class NetworkProfile(model_base.BASEV2, models_v2.HasId):
     """

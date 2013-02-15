@@ -19,9 +19,21 @@ from sqlalchemy.orm import exc
 from quantum.db import api as db
 from quantum.plugins.cisco.db.nexus1000v_db import NetworkProfile, PolicyProfile, ProfileBinding
 from quantum.plugins.cisco.db import nexus1000v_db
+from quantum.common import exceptions
 
 TEST_NETWORK_PROFILE = {'name': 'test_profile', 'segment_type': 'vlan', 'multicast_ip_range': '200-300'}
 TEST_POLICY_PROFILE = {'id': '4a417990-76fb-11e2-bcfd-0800200c9a66', 'name': 'test_policy_profile'}
+PHYS_NET = 'physnet1'
+PHYS_NET_2 = 'physnet2'
+VLAN_MIN = 10
+VLAN_MAX = 19
+VLAN_RANGES = {PHYS_NET: [(VLAN_MIN, VLAN_MAX)]}
+UPDATED_VLAN_RANGES = {PHYS_NET: [(VLAN_MIN + 5, VLAN_MAX + 5)],
+                       PHYS_NET_2: [(VLAN_MIN + 20, VLAN_MAX + 20)]}
+TUN_MIN = 100
+TUN_MAX = 109
+TUNNEL_RANGES = [(TUN_MIN, TUN_MAX)]
+UPDATED_TUNNEL_RANGES = [(TUN_MIN + 5, TUN_MAX + 5)]
 
 
 class NetworkProfileTests(TestCase):
@@ -221,3 +233,79 @@ class ProfileBindingTests(TestCase):
         else:
             self.fail("Profile binding was not deleted")
 
+
+class VxlanAllocationsTest(TestCase):
+    def setUp(self):
+        nexus1000v_db.initialize()
+        nexus1000v_db.sync_vxlan_allocations(TUNNEL_RANGES)
+        self.session = db.get_session()
+
+    def tearDown(self):
+        db.clear_db()
+
+    def test_sync_tunnel_allocations(self):
+        self.assertIsNone(nexus1000v_db.get_vxlan_allocation(TUN_MIN - 1))
+        self.assertFalse(nexus1000v_db.get_vxlan_allocation(TUN_MIN).allocated)
+        self.assertFalse(nexus1000v_db.get_vxlan_allocation(TUN_MIN + 1).
+        allocated)
+        self.assertFalse(nexus1000v_db.get_vxlan_allocation(TUN_MAX - 1).
+        allocated)
+        self.assertFalse(nexus1000v_db.get_vxlan_allocation(TUN_MAX).allocated)
+        self.assertIsNone(nexus1000v_db.get_vxlan_allocation(TUN_MAX + 1))
+
+        nexus1000v_db.sync_vxlan_allocations(UPDATED_TUNNEL_RANGES)
+
+        self.assertIsNone(nexus1000v_db.get_vxlan_allocation(TUN_MIN + 5 - 1))
+        self.assertFalse(nexus1000v_db.get_vxlan_allocation(TUN_MIN + 5).
+        allocated)
+        self.assertFalse(nexus1000v_db.get_vxlan_allocation(TUN_MIN + 5 + 1).
+        allocated)
+        self.assertFalse(nexus1000v_db.get_vxlan_allocation(TUN_MAX + 5 - 1).
+        allocated)
+        self.assertFalse(nexus1000v_db.get_vxlan_allocation(TUN_MAX + 5).
+        allocated)
+        self.assertIsNone(nexus1000v_db.get_vxlan_allocation(TUN_MAX + 5 + 1))
+
+    def test_tunnel_pool(self):
+        tunnel_ids = set()
+        for x in xrange(TUN_MIN, TUN_MAX + 1):
+            tunnel_id = nexus1000v_db.reserve_vxlan(self.session)
+            self.assertGreaterEqual(tunnel_id, TUN_MIN)
+            self.assertLessEqual(tunnel_id, TUN_MAX)
+            tunnel_ids.add(tunnel_id)
+
+        with self.assertRaises(exceptions.NoNetworkAvailable):
+            tunnel_id = nexus1000v_db.reserve_vxlan(self.session)
+
+        nexus1000v_db.release_vxlan(self.session, tunnel_ids.pop(), TUNNEL_RANGES)
+        tunnel_id = nexus1000v_db.reserve_vxlan(self.session)
+        self.assertGreaterEqual(tunnel_id, TUN_MIN)
+        self.assertLessEqual(tunnel_id, TUN_MAX)
+        tunnel_ids.add(tunnel_id)
+
+        for tunnel_id in tunnel_ids:
+            nexus1000v_db.release_vxlan(self.session, tunnel_id, TUNNEL_RANGES)
+
+    def test_specific_tunnel_inside_pool(self):
+        tunnel_id = TUN_MIN + 5
+        self.assertFalse(nexus1000v_db.get_vxlan_allocation(tunnel_id).allocated)
+        nexus1000v_db.reserve_specific_vxlan(self.session, tunnel_id)
+        self.assertTrue(nexus1000v_db.get_vxlan_allocation(tunnel_id).allocated)
+
+        with self.assertRaises(exceptions.TunnelIdInUse):
+            nexus1000v_db.reserve_specific_vxlan(self.session, tunnel_id)
+
+        nexus1000v_db.release_vxlan(self.session, tunnel_id, TUNNEL_RANGES)
+        self.assertFalse(nexus1000v_db.get_vxlan_allocation(tunnel_id).allocated)
+
+    def test_specific_tunnel_outside_pool(self):
+        tunnel_id = TUN_MAX + 5
+        self.assertIsNone(nexus1000v_db.get_vxlan_allocation(tunnel_id))
+        nexus1000v_db.reserve_specific_vxlan(self.session, tunnel_id)
+        self.assertTrue(nexus1000v_db.get_vxlan_allocation(tunnel_id).allocated)
+
+        with self.assertRaises(exceptions.TunnelIdInUse):
+            nexus1000v_db.reserve_specific_vxlan(self.session, tunnel_id)
+
+        nexus1000v_db.release_vxlan(self.session, tunnel_id, TUNNEL_RANGES)
+        self.assertIsNone(nexus1000v_db.get_vxlan_allocation(tunnel_id))
