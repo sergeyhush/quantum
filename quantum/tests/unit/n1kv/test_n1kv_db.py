@@ -37,6 +37,22 @@ TEST_NETWORK_PROFILE = {'name': 'test_profile', 'segment_type': 'vlan', 'multica
 TEST_POLICY_PROFILE = {'id': '4a417990-76fb-11e2-bcfd-0800200c9a66', 'name': 'test_policy_profile'}
 
 
+def create_test_network_profile_if_not_there(session, profile=TEST_NETWORK_PROFILE):
+    try:
+        _profile = session.query(NetworkProfile).filter_by(name=profile['name']).one()
+    except s_exc.NoResultFound:
+        _profile = n1kv_db_v2.create_network_profile(profile)
+    return _profile
+
+
+def create_test_policy_profile_if_not_there(session, profile=TEST_POLICY_PROFILE):
+    try:
+        _profile = session.query(PolicyProfile).filter_by(name=profile['name']).one()
+    except s_exc.NoResultFound:
+        _profile = n1kv_db_v2.create_policy_profile(profile)
+    return _profile
+
+
 class VlanAllocationsTest(unittest2.TestCase):
     def setUp(self):
         n1kv_db_v2.initialize()
@@ -203,7 +219,7 @@ class TunnelAllocationsTest(unittest2.TestCase):
 
     def test_tunnel_pool(self):
         tunnel_ids = set()
-        profile = NetworkProfileTests.create_test_profile_if_not_there(self.session)
+        profile = create_test_network_profile_if_not_there(self.session)
         for x in xrange(TUN_MIN, TUN_MAX + 1):
             tunnel_id = n1kv_db_v2.reserve_vxlan(self.session, profile)
             self.assertGreaterEqual(tunnel_id, TUN_MIN)
@@ -276,14 +292,6 @@ class NetworkProfileTests(unittest2.TestCase):
     def tearDown(self):
         db.clear_db()
 
-    @staticmethod
-    def create_test_profile_if_not_there(session, profile=TEST_NETWORK_PROFILE):
-        try:
-            _profile = session.query(NetworkProfile).filter_by(name=profile['name']).one()
-        except s_exc.NoResultFound:
-            _profile = n1kv_db_v2.create_network_profile(profile)
-        return _profile
-
     def test_create_network_profile(self):
         _db_profile = n1kv_db_v2.create_network_profile(TEST_NETWORK_PROFILE)
         self.assertIsNotNone(_db_profile)
@@ -312,7 +320,7 @@ class NetworkProfileTests(unittest2.TestCase):
 
     def test_update_network_profile(self):
         TEST_PROFILE_1 = {'name': 'test_profile_1'}
-        profile = NetworkProfileTests.create_test_profile_if_not_there(self.session)
+        profile = create_test_network_profile_if_not_there(self.session)
         updated_profile = n1kv_db_v2.update_network_profile(profile.id, TEST_PROFILE_1)
         try:
             self.session.query(NetworkProfile).filter_by(name=profile.name).one()
@@ -323,7 +331,7 @@ class NetworkProfileTests(unittest2.TestCase):
         self.assertEqual(updated_profile.name, TEST_PROFILE_1['name'])
 
     def test_get_network_profile(self):
-        profile = NetworkProfileTests.create_test_profile_if_not_there(self.session)
+        profile = create_test_network_profile_if_not_there(self.session)
         got_profile = n1kv_db_v2.get_network_profile(profile.id)
         self.assertEqual(profile.id, got_profile.id)
         self.assertEqual(profile.name, got_profile.name)
@@ -350,14 +358,6 @@ class PolicyProfileTests(unittest2.TestCase):
     def tearDown(self):
         db.clear_db()
 
-    @staticmethod
-    def create_test_profile_if_not_there(session, profile=TEST_POLICY_PROFILE):
-        try:
-            _profile = session.query(PolicyProfile).filter_by(name=profile['name']).one()
-        except s_exc.NoResultFound:
-            _profile = n1kv_db_v2.create_policy_profile(profile)
-        return _profile
-
     def test_create_policy_profile(self):
         _db_profile = n1kv_db_v2.create_policy_profile(TEST_POLICY_PROFILE)
         self.assertIsNotNone(_db_profile)
@@ -366,7 +366,7 @@ class PolicyProfileTests(unittest2.TestCase):
         self.assertTrue(_db_profile.id == db_profile.id and _db_profile.name == db_profile.name)
 
     def test_delete_policy_profile(self):
-        profile = PolicyProfileTests.create_test_profile_if_not_there(self.session)
+        profile = create_test_policy_profile_if_not_there(self.session)
         n1kv_db_v2.delete_policy_profile(profile.id)
         try:
             _profile = self.session.query(PolicyProfile).filter_by(name=TEST_POLICY_PROFILE['name']).one()
@@ -377,7 +377,7 @@ class PolicyProfileTests(unittest2.TestCase):
 
     def test_update_policy_profile(self):
         TEST_PROFILE_1 = {'name': 'test_profile_1'}
-        profile = PolicyProfileTests.create_test_profile_if_not_there(self.session)
+        profile = create_test_policy_profile_if_not_there(self.session)
         updated_profile = n1kv_db_v2.update_policy_profile(profile.id, TEST_PROFILE_1)
         try:
             self.session.query(PolicyProfile).filter_by(name=profile.name).one()
@@ -388,7 +388,7 @@ class PolicyProfileTests(unittest2.TestCase):
         self.assertEqual(updated_profile.name, TEST_PROFILE_1['name'])
 
     def test_get_policy_profile(self):
-        profile = PolicyProfileTests.create_test_profile_if_not_there(self.session)
+        profile = create_test_policy_profile_if_not_there(self.session)
         got_profile = n1kv_db_v2.get_policy_profile(profile.id)
         self.assertEqual(profile.id, got_profile.id)
         self.assertEqual(profile.name, got_profile.name)
