@@ -406,6 +406,7 @@ def add_vm_network(name, profile_id, network_id):
         vm_network = n1kv_models_v2.N1kVmNetwork(name, profile_id, network_id)
         session.add(vm_network)
 
+
 def create_network_profile(profile):
     """
      Create Network Profile
@@ -415,11 +416,31 @@ def create_network_profile(profile):
     """
     LOG.debug("create_network_profile()")
     session = db.get_session()
+    _validate_network_profile_obj(profile)
     with session.begin(subtransactions=True):
-        net_profile = n1kv_models_v2.NetworkProfile(profile['name'], profile['segment_type'], 0, profile['multicast_ip_range'])
+        if profile['segment_type'] == 'vlan':
+            net_profile = n1kv_models_v2.NetworkProfile(name=profile['name'], type=profile['segment_type'],
+                                                        segment_range=profile['segment_range'])
+        elif profile['segment_type'] == 'vxlan':
+            net_profile = n1kv_models_v2.NetworkProfile(name=profile['name'], type=profile['segment_type'],
+                                                        mcast_ip_index=0, mcast_ip_range=profile['multicast_ip_range'])
         session.add(net_profile)
         return net_profile
 
+
+def _validate_network_profile_obj(profile):
+    """
+    Validate Network profile object that was passed in
+    :param profile:
+    :return:
+    """
+    if profile['segment_type'] not in ('vlan', 'vxlan'):
+        raise q_exc.QuantumException('Profile type must be VLAN or VxLAN')
+    #TODO Finish all validations
+    if profile['segment_type'] == 'vlan':
+        pass
+    elif profile['segment_type'] == 'vxlan':
+        pass
 
 def delete_network_profile(id):
     """

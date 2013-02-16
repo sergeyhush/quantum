@@ -770,3 +770,7 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
         subnets = super(N1kvQuantumPluginV2, self).get_subnets(context, filters,
             fields)
         return [self._fields(subnet, fields) for subnet in subnets]
+
+    def create_network_profile(self, context, profile):
+        n1kv_db_v2.create_network_profile(profile['profile'])
+

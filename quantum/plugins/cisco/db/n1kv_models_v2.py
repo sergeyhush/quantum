@@ -218,11 +218,12 @@ class NetworkProfile(model_base.BASEV2, HasId):
     multicast_ip_index = Column(Integer)
     multicast_ip_range = Column(String(255))
 
-    def __init__(self, name, type, index, range):
+    def __init__(self, name, type, segment_range, mcast_ip_index, mcast_ip_range):
         self.name = name
         self.segment_type = type
-        self.multicast_ip_index = index
-        self.multicast_ip_range = range
+        self.segment_range = segment_range
+        self.multicast_ip_index = mcast_ip_index
+        self.multicast_ip_range = mcast_ip_range
 
     def __repr__(self):
         return "<NetworkProfile (%s, %s, %s, %d, %s)>" % (self.id, self.name, self.segment_type,
