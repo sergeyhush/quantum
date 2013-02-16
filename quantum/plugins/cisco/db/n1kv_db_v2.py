@@ -432,7 +432,6 @@ def _validate_network_profile_obj(profile):
     """
     Validate Network profile object that was passed in
     :param profile:
-    :return:
     """
     if profile['segment_type'] not in ('vlan', 'vxlan'):
         raise q_exc.QuantumException('Profile type must be VLAN or VxLAN')

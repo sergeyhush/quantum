@@ -772,5 +772,51 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
         return [self._fields(subnet, fields) for subnet in subnets]
 
     def create_network_profile(self, context, profile):
-        n1kv_db_v2.create_network_profile(profile['profile'])
+        """
+
+        :param context:
+        :param profile:
+        :return:
+        """
+        return n1kv_db_v2.create_network_profile(profile['profile'])
+
+    def delete_network_profile(self,context, id):
+        """
+
+        :param context:
+        :param id:
+        :return:
+        """
+        return n1kv_db_v2.delete_network_profile(id)
+
+    def update_network_profile(self, context, id, profile):
+        """
+
+        :param context:
+        :param id:
+        :param profile:
+        :return:
+        """
+        return n1kv_db_v2.update_network_profile(id, profile['profile'])
+
+    def get_network_profile(self, context, id, fields=None):
+        """
+        Read a network profile
+        :param context:
+        :param id:
+        :param fields:
+        :return:
+        """
+        return n1kv_db_v2.get_network_profile(id, fields)
+
+    def get_network_profiles(self, context, filters=None, fields=None):
+        """
+        Read all network profiles
+        :param context:
+        :param filters:
+        :param fields:
+        :return:
+        """
+        return n1kv_db_v2.get_all_network_profiles()
+
 
