@@ -29,7 +29,7 @@ class PolicyProfile(extensions.ExtensionDescriptor):
 
     @classmethod
     def get_alias(cls):
-        return "policy_profile"
+        return "policy-profile"
 
     @classmethod
     def get_description(cls):

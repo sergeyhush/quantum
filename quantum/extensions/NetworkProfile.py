@@ -34,7 +34,7 @@ class NetworkProfile(extensions.ExtensionDescriptor):
 
     @classmethod
     def get_alias(cls):
-        return "network_profile"
+        return "network-profile"
 
     @classmethod
     def get_description(cls):
