@@ -50,5 +50,5 @@ class PolicyProfile(extensions.ExtensionDescriptor):
             COLLECTION_NAME,
             RESOURCE_NAME,
             manager.QuantumManager.get_plugin(),
-            RESOURCE_ATTRIBUTE_MAP.get[COLLECTION_NAME])
+            RESOURCE_ATTRIBUTE_MAP.get(COLLECTION_NAME))
         return [extensions.ResourceExtension(COLLECTION_NAME,controller)]
