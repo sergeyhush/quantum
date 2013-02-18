@@ -628,7 +628,7 @@ def delete_profile_binding(tenant_id, profile_id):
     with session.begin(subtransactions=True):
         session.delete(binding)
 
-class NetworkProfile_db_mixin(profile.ProfileBase):
+class NetworkProfile_db_mixin(object):
 
     def _make_network_profile_dict(self, profile, fields):
         res = {'id': profile['id'],
