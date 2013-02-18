@@ -639,20 +639,20 @@ class NetworkProfile_db_mixin(object):
                'multicast_ip_range': profile['multicast_ip_range']}
         return self._fields(res, fields)
 
-    def create_network_profile(self, context, profile):
+    def create_networkprofile(self, context, profile):
         return self._make_network_profile_dict(create_network_profile(profile))
 
-    def delete_network_profile(self, context, id):
+    def delete_networkprofile(self, context, id):
         delete_network_profile(id)
 
-    def get_network_profile(self, context, id, fields=None):
+    def get_networkprofile(self, context, id, fields=None):
         profile = get_network_profile(id, fields)
         return self._make_network_profile_dict(profile, fields)
 
-    def update_network_profile(self, context, id, profile):
+    def update_networkprofile(self, context, id, profile):
         return self._make_network_profile_dict(update_network_profile(id, profile))
 
-    def get_network_profiles(self, context, filters=None, fields=None):
+    def get_networkprofiles(self, context, filters=None, fields=None):
         # profiles = get_all_network_profiles()
         # return profiles
         return self._get_collection(context, n1kv_models_v2.NetworkProfile,
@@ -666,12 +666,12 @@ class PolicyProfile_db_mixin(object):
         res = {'id': profile['id'], 'name': profile['name']}
         return self._fields(res, fields)
 
-    def get_profile(self, context, id, fields=None):
+    def get_policyprofile(self, context, id, fields=None):
         # return get_policy_profile(id, fields)
         profile = get_policy_profile(id, fields)
         return self._make_profile_dict(profile, fields)
 
-    def get_profiles(self, context, filters=None, fields=None):
+    def get_policyprofiles(self, context, filters=None, fields=None):
         # return get_all_policy_profiles()
         return self._get_collection(context, n1kv_models_v2.PolicyProfile,
                                     self._make_network_dict,
