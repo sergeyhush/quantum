@@ -819,4 +819,25 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
         """
         return n1kv_db_v2.get_all_network_profiles()
 
+    def get_policy_profile(self, context, id, fields=None):
+        """
+        Read a policy profile
+        :param context:
+        :param id:
+        :param fields:
+        :return:
+        """
+        return n1kv_db_v2.get_policy_profile(id, fields)
+
+    def get_policy_profiles(self, context, filters=None, fields=None):
+        """
+        Read all policy profiles
+        :param context:
+        :param filters:
+        :param fields:
+        :return:
+        """
+        return n1kv_db_v2.get_all_policy_profiles()
+
+
 
