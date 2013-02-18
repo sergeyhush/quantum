@@ -218,9 +218,9 @@ class NetworkProfile(model_base.BASEV2, HasId):
     multicast_ip_index = Column(Integer)
     multicast_ip_range = Column(String(255))
 
-    def __init__(self, name, type, segment_range=None, mcast_ip_index=None, mcast_ip_range=None):
+    def __init__(self, name, segment_type, segment_range=None, mcast_ip_index=None, mcast_ip_range=None):
         self.name = name
-        self.segment_type = type
+        self.segment_type = segment_type
         self.segment_range = segment_range
         self.multicast_ip_index = mcast_ip_index
         self.multicast_ip_range = mcast_ip_range
