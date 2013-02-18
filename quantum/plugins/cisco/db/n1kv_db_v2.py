@@ -630,7 +630,7 @@ def delete_profile_binding(tenant_id, profile_id):
 
 class NetworkProfile_db_mixin(profile.ProfileBase):
 
-    def _make_profile_dict(self, profile, fields):
+    def _make_network_profile_dict(self, profile, fields):
         res = {'id': profile['id'],
                'name': profile['name'],
                'segment_type': profile['segment_type'],
@@ -639,20 +639,20 @@ class NetworkProfile_db_mixin(profile.ProfileBase):
                'multicast_ip_range': profile['multicast_ip_range']}
         return self._fields(res, fields)
 
-    def create_profile(self, context, profile):
-        return self._make_profile_dict(create_network_profile(profile))
+    def create_network_profile(self, context, profile):
+        return self._make_network_profile_dict(create_network_profile(profile))
 
-    def delete_profile(self, context, id):
+    def delete_network_profile(self, context, id):
         delete_network_profile(id)
 
-    def get_profile(self, context, id, fields=None):
+    def get_network_profile(self, context, id, fields=None):
         profile = get_network_profile(id, fields)
-        return self._make_profile_dict(profile, fields)
+        return self._make_network_profile_dict(profile, fields)
 
-    def update_profile(self, context, id, profile):
-        return self._make_profile_dict(update_network_profile(id, profile))
+    def update_network_profile(self, context, id, profile):
+        return self._make_network_profile_dict(update_network_profile(id, profile))
 
-    def get_profiles(self, context, filters=None, fields=None):
+    def get_network_profiles(self, context, filters=None, fields=None):
         # profiles = get_all_network_profiles()
         # return profiles
         return self._get_collection(context, n1kv_models_v2.NetworkProfile,
