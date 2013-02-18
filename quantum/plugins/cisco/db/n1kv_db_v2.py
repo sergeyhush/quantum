@@ -420,10 +420,10 @@ def create_network_profile(profile):
     _validate_network_profile_obj(profile)
     with session.begin(subtransactions=True):
         if profile['segment_type'] == 'vlan':
-            net_profile = n1kv_models_v2.NetworkProfile(name=profile['name'], type=profile['segment_type'],
+            net_profile = n1kv_models_v2.NetworkProfile(name=profile['name'], segment_type=profile['segment_type'],
                                                         segment_range=profile['segment_range'])
         elif profile['segment_type'] == 'vxlan':
-            net_profile = n1kv_models_v2.NetworkProfile(name=profile['name'], type=profile['segment_type'],
+            net_profile = n1kv_models_v2.NetworkProfile(name=profile['name'], segment_type=profile['segment_type'],
                                                         mcast_ip_index=0, mcast_ip_range=profile['multicast_ip_range'])
         session.add(net_profile)
         return net_profile
