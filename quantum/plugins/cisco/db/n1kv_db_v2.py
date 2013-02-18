@@ -630,25 +630,49 @@ def delete_profile_binding(tenant_id, profile_id):
 
 class NetworkProfile_db_mixin(profile.ProfileBase):
 
+    def _make_profile_dict(self, profile, fields):
+        res = {'id': profile['id'],
+               'name': profile['name'],
+               'segment_type': profile['segment_type'],
+               'segment_range': profile['segment_range'],
+               'multicast_ip_index': profile['multicast_ip_index'],
+               'multicast_ip_range': profile['multicast_ip_range']}
+        return self._fields(res, fields)
+
     def create_profile(self, context, profile):
-        return create_network_profile(profile)
+        return self._make_profile_dict(create_network_profile(profile))
 
     def delete_profile(self, context, id):
-        return delete_network_profile(id)
+        delete_network_profile(id)
 
     def get_profile(self, context, id, fields=None):
-        return get_network_profile(id, fields)
+        profile = get_network_profile(id, fields)
+        return self._make_profile_dict(profile, fields)
 
     def update_profile(self, context, id, profile):
-        return update_network_profile(id, profile)
+        return self._make_profile_dict(update_network_profile(id, profile))
 
     def get_profiles(self, context, filters=None, fields=None):
-        return get_all_network_profiles()
+        # profiles = get_all_network_profiles()
+        # return profiles
+        return self._get_collection(context, n1kv_models_v2.NetworkProfile,
+                                    self._make_network_dict,
+                                    filters=filters, fields=fields)
+
 
 class PolicyProfile_db_mixin(object):
 
+    def _make_profile_dict(self, profile, fields):
+        res = {'id': profile['id'], 'name': profile['name']}
+        return self._fields(res, fields)
+
     def get_profile(self, context, id, fields=None):
-        return get_policy_profile(id, fields)
+        # return get_policy_profile(id, fields)
+        profile = get_policy_profile(id, fields)
+        return self._make_profile_dict(profile, fields)
 
     def get_profiles(self, context, filters=None, fields=None):
-        return get_all_policy_profiles()
+        # return get_all_policy_profiles()
+        return self._get_collection(context, n1kv_models_v2.PolicyProfile,
+                                    self._make_network_dict,
+                                    filters=filters, fields=fields)
