@@ -188,7 +188,9 @@ class AgentNotifierApi(proxy.RpcProxy):
 
 class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
                          l3_db.L3_NAT_db_mixin,
-                         n1kv_profile_db.N1kvProfile_db_mixin, n1kv_db_v2.NetworkProfile_db_mixin):
+                         n1kv_profile_db.N1kvProfile_db_mixin,
+                         n1kv_db_v2.NetworkProfile_db_mixin,
+                         n1kv_db_v2.PolicyProfile_db_mixin):
     """
     Implement the Quantum abstractions using Cisco Nexus1000V
 
@@ -243,21 +245,30 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
         LOG.debug('_setup_vsm')
         self.agent_vsm = True
         self._send_register_request()
+        self._poll_policies()
 
-    def _poll_policies(self, tenant_id):
-        """ Retrieve Port-Profiles from Cisco Nexus1000V VSM """
+    def _poll_policies(self, tenant_id=None):
+        """
+        Retrieve Policy Profiles from Cisco Nexus1000V
+        :param tenant_id:
+        :return:
+        """
         LOG.debug('_poll_policies')
-        n1kvclient = n1kv_client.Client()
-        self._add_policy_profiles(n1kvclient, tenant_id)
-
-    def _add_policy_profiles(self, n1kvclient, tenant_id):
-        """Populate Profiles of type Policy on init."""
-        profiles = n1kvclient.list_profiles()
-        for profile in profiles[const.SET]:
+        client = n1kv_client.Client()
+        policy_profiles = client.list_profiles()
+        for profile in policy_profiles[const.SET]:
             profile_id = profile[const.PROPERTIES][const.ID]
             profile_name = profile[const.PROPERTIES][const.NAME]
-            self.add_profile(tenant_id,
-                             profile_id, profile_name, const.POLICY)
+            self._add_policy_profile(profile_name, profile_id, tenant_id)
+
+    # def _add_policy_profiles(self, n1kvclient, tenant_id):
+    #     """Populate Profiles of type Policy on init."""
+    #     profiles = n1kvclient.list_profiles()
+    #     for profile in profiles[const.SET]:
+    #         profile_id = profile[const.PROPERTIES][const.ID]
+    #         profile_name = profile[const.PROPERTIES][const.NAME]
+    #         self.add_profile(tenant_id,
+    #                          profile_id, profile_name, const.POLICY)
 
     # TBD Begin : To be removed. Needs some change in logic before removal
     def _parse_network_vlan_ranges(self):
@@ -770,74 +781,3 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
         subnets = super(N1kvQuantumPluginV2, self).get_subnets(context, filters,
             fields)
         return [self._fields(subnet, fields) for subnet in subnets]
-
-    # def create_network_profile(self, context, profile):
-    #     """
-    #
-    #     :param context:
-    #     :param profile:
-    #     :return:
-    #     """
-    #     return n1kv_db_v2.create_network_profile(profile['profile'])
-    #
-    # def delete_network_profile(self,context, id):
-    #     """
-    #
-    #     :param context:
-    #     :param id:
-    #     :return:
-    #     """
-    #     return n1kv_db_v2.delete_network_profile(id)
-    #
-    # def update_network_profile(self, context, id, profile):
-    #     """
-    #
-    #     :param context:
-    #     :param id:
-    #     :param profile:
-    #     :return:
-    #     """
-    #     return n1kv_db_v2.update_network_profile(id, profile['profile'])
-    #
-    # def get_network_profile(self, context, id, fields=None):
-    #     """
-    #     Read a network profile
-    #     :param context:
-    #     :param id:
-    #     :param fields:
-    #     :return:
-    #     """
-    #     return n1kv_db_v2.get_network_profile(id, fields)
-    #
-    # def get_network_profiles(self, context, filters=None, fields=None):
-    #     """
-    #     Read all network profiles
-    #     :param context:
-    #     :param filters:
-    #     :param fields:
-    #     :return:
-    #     """
-    #     return n1kv_db_v2.get_all_network_profiles()
-
-    def get_policy_profile(self, context, id, fields=None):
-        """
-        Read a policy profile
-        :param context:
-        :param id:
-        :param fields:
-        :return:
-        """
-        return n1kv_db_v2.get_policy_profile(id, fields)
-
-    def get_policy_profiles(self, context, filters=None, fields=None):
-        """
-        Read all policy profiles
-        :param context:
-        :param filters:
-        :param fields:
-        :return:
-        """
-        return n1kv_db_v2.get_all_policy_profiles()
-
-
-
