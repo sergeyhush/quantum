@@ -641,7 +641,10 @@ class NetworkProfile_db_mixin(object):
 
     def create_networkprofile(self, context, profile):
         p = profile['networkprofile']
-        return self._make_network_profile_dict(create_network_profile(p))
+        tenant_id = self._get_tenant_id_for_create(context, p)
+        _profile = self._make_network_profile_dict(create_network_profile(p))
+        create_profile_binding(tenant_id, _profile.id, 'network')
+        return _profile
 
     def delete_networkprofile(self, context, id):
         delete_network_profile(id)
