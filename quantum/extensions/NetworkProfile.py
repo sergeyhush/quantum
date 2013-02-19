@@ -3,8 +3,10 @@ from quantum.api.v2 import attributes as attr
 from quantum.api.v2 import base
 from quantum.api import extensions
 from quantum import manager
-RESOURCE_NAME = "network-profile"
+RESOURCE_NAME = "network_profile"
 COLLECTION_NAME = "%ss" % RESOURCE_NAME
+EXT_ALIAS = RESOURCE_NAME
+
 
 # Attribute Map
 RESOURCE_ATTRIBUTE_MAP = {
@@ -26,7 +28,7 @@ RESOURCE_ATTRIBUTE_MAP = {
 }
 
 
-class NetworkProfile(extensions.ExtensionDescriptor):
+class Networkprofile(extensions.ExtensionDescriptor):
 
     @classmethod
     def get_name(cls):
@@ -34,7 +36,7 @@ class NetworkProfile(extensions.ExtensionDescriptor):
 
     @classmethod
     def get_alias(cls):
-        return "network-profile"
+        return EXT_ALIAS
 
     @classmethod
     def get_description(cls):

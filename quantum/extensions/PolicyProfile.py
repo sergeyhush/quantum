@@ -5,9 +5,9 @@ from quantum.api import extensions
 from quantum import manager
 
 
-RESOURCE_NAME = "policy-profile"
+RESOURCE_NAME = "policy_profile"
 COLLECTION_NAME = "%ss" % RESOURCE_NAME
-
+EXT_ALIAS = RESOURCE_NAME
 
 # Attribute Map
 RESOURCE_ATTRIBUTE_MAP = {
@@ -21,7 +21,7 @@ RESOURCE_ATTRIBUTE_MAP = {
 }
 
 
-class PolicyProfile(extensions.ExtensionDescriptor):
+class Policyprofile(extensions.ExtensionDescriptor):
 
     @classmethod
     def get_name(cls):
@@ -29,11 +29,11 @@ class PolicyProfile(extensions.ExtensionDescriptor):
 
     @classmethod
     def get_alias(cls):
-        return "policy-profile"
+        return EXT_ALIAS
 
     @classmethod
     def get_description(cls):
-        return ("Profile includes the type of profile for N1kv")
+        return "Profile includes the type of profile for N1kv"
 
     @classmethod
     def get_namespace(cls):
