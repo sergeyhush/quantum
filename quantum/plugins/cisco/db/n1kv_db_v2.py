@@ -682,6 +682,16 @@ class PolicyProfile_db_mixin(object):
                                     self._make_policy_profile_dict,
                                     filters=filters, fields=fields)
 
+    def _replace_fake_tanant_id_with_real(self, context):
+        if context.is_admin and context.tenant_id:
+            tenant_id = context.tenant_id
+            session = db.get_session()
+            with session.begin(subtransactions=True):
+                session.query(n1kv_models_v2.ProfileBinding).\
+                    filter(tenant_id=n1kv_models_v2.TENANT_ID_NOT_SET).\
+                    update({'tenant_id': tenant_id})
+
+
     def _add_policy_profile(self, profile_name, profile_id, tenant_id=None):
         """
         Add Policy profile and tenant binding
