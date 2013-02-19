@@ -683,6 +683,11 @@ class PolicyProfile_db_mixin(object):
                                     filters=filters, fields=fields)
 
     def _replace_fake_tanant_id_with_real(self, context):
+        """
+        Replace fake tenant id for all Policy Profile binding with real admin tenant ID
+        :param context:
+        :return:
+        """
         if context.is_admin and context.tenant_id:
             tenant_id = context.tenant_id
             session = db.get_session()
