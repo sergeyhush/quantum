@@ -681,3 +681,16 @@ class PolicyProfile_db_mixin(object):
         return self._get_collection(context, n1kv_models_v2.PolicyProfile,
                                     self._make_policy_profile_dict,
                                     filters=filters, fields=fields)
+
+    def _add_policy_profile(self, context, profile_name, profile_id, tenant_id=None):
+        """
+        Add Policy profile and tenant binding
+        :param profile_name:
+        :param profile_id:
+        :param tenant_id:
+        :return:
+        """
+        profile = {'id': profile_id, 'name': profile_name}
+        tenant_id = tenant_id or self._get_tenant_id_for_create(context, profile)
+        create_policy_profile(profile)
+        create_profile_binding(tenant_id, profile['id'], 'policy')
