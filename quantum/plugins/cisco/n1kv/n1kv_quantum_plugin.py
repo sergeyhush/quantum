@@ -246,7 +246,7 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
         LOG.debug('_setup_vsm')
         self.agent_vsm = True
         self._send_register_request()
-        self._poll_policies()
+        # self._poll_policies()
 
     def _poll_policies(self, tenant_id=None):
         """
@@ -535,7 +535,7 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
 
     def create_network(self, context, network):
         """ Create network based on Network Profile """
-        self._poll_policies(network['network']['tenant_id'])
+        # self._poll_policies(network['network']['tenant_id'])
         (network_type, physical_network,
          segmentation_id) = self._process_provider_create(context,
             network['network'])
