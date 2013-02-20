@@ -592,6 +592,10 @@ def create_profile_binding(tenant_id, profile_id, profile_type):
     """
     if  profile_type not in ['network', 'policy']:
         raise q_exc.QuantumException("Invalid profile type")
+
+    if _profile_binding_exists(tenant_id, profile_id, profile_type):
+        return get_profile_binding(tenant_id, profile_id)
+
     session = db.get_session()
     with session.begin(subtransactions=True):
         binding = n1kv_models_v2.ProfileBinding(profile_type=profile_type, profile_id=profile_id, tenant_id=tenant_id)
@@ -601,10 +605,21 @@ def create_profile_binding(tenant_id, profile_id, profile_type):
 
 def _profile_binding_exists(tenant_id, profile_id, profile_type):
     LOG.debug("get_profile_binding()")
+    try:
+        binding = _get_profile_binding(tenant_id, profile_id)
+        return binding.profile_type == profile_type
+    except exc.NoResultFound:
+        return False
+    except Exception, e:
+        LOG.debug("Error in get_profile_binding(): %s" % e)
+
+
+
+def _get_profile_binding(tenant_id, profile_id):
+    LOG.debug("_get_profile_binding")
     session = db.get_session()
-    return session.query(n1kv_models_v2.ProfileBinding).\
-               filter_by(profile_type=profile_type, profile_id=profile_id, tenant_id=tenant_id).\
-               count() and True or False
+    binding = session.query(n1kv_models_v2.ProfileBinding).filter_by(tenant_id=tenant_id, profile_id=profile_id).one()
+    return binding
 
 
 def get_profile_binding(tenant_id, profile_id):
@@ -615,14 +630,13 @@ def get_profile_binding(tenant_id, profile_id):
     :return:
     """
     LOG.debug("get_profile_binding()")
-    session = db.get_session()
     try:
-        binding = session.query(n1kv_models_v2.ProfileBinding).filter_by(tenant_id=tenant_id, profile_id=profile_id).one()
-        return binding
+        return _get_profile_binding(tenant_id, profile_id)
     except exc.NoResultFound:
         raise q_exc.QuantumException("Profile-Tenant binding not found")
     except exc.MultipleResultsFound:
         raise q_exc.QuantumException("Profile-Tenant binding must be unique")
+
 
 def delete_profile_binding(tenant_id, profile_id):
     """
@@ -636,6 +650,7 @@ def delete_profile_binding(tenant_id, profile_id):
     binding = get_profile_binding(tenant_id, profile_id)
     with session.begin(subtransactions=True):
         session.delete(binding)
+
 
 class NetworkProfile_db_mixin(object):
 
@@ -673,6 +688,15 @@ class NetworkProfile_db_mixin(object):
                                     self._make_network_profile_dict,
                                     filters=filters, fields=fields)
 
+    def add_network_profile_tenant(self, profile_id, tenant_id):
+        """
+        Add a tenant to a network profile
+        :param profile_id:
+        :param tenant_id:
+        :return:
+        """
+        return create_profile_binding(tenant_id, profile_id, 'network')
+
 
 class PolicyProfile_db_mixin(object):
 
@@ -694,6 +718,15 @@ class PolicyProfile_db_mixin(object):
         return self._get_collection(context, n1kv_models_v2.PolicyProfile,
                                     self._make_policy_profile_dict,
                                     filters=filters, fields=fields)
+
+    def add_policy_profile_tenant(self, profile_id, tenant_id):
+        """
+        Add tenant to a policy profile
+        :param profile_id:
+        :param tenant_id:
+        :return:
+        """
+        return create_profile_binding(tenant_id, profile_id, 'policy')
 
     def _replace_fake_tanant_id_with_real(self, context):
         """
