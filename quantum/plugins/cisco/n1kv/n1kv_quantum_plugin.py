@@ -246,7 +246,7 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
         LOG.debug('_setup_vsm')
         self.agent_vsm = True
         self._send_register_request()
-        # self._poll_policies()
+        self._poll_policies()
 
     def _poll_policies(self, tenant_id=None):
         """
