@@ -693,7 +693,7 @@ class PolicyProfile_db_mixin(object):
             session = db.get_session()
             with session.begin(subtransactions=True):
                 session.query(n1kv_models_v2.ProfileBinding).\
-                    filter(tenant_id=n1kv_models_v2.TENANT_ID_NOT_SET).\
+                    filter_by(tenant_id=n1kv_models_v2.TENANT_ID_NOT_SET).\
                     update({'tenant_id': tenant_id})
 
 
