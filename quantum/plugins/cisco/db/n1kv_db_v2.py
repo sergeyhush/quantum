@@ -662,8 +662,8 @@ class NetworkProfile_db_mixin(object):
         profile = get_network_profile(id, fields)
         return self._make_network_profile_dict(profile, fields)
 
-    def update_network_profile(self, context, id, profile):
-        p = profile['networkprofile']
+    def update_network_profile(self, context, id, network_profile):
+        p = network_profile['network_profile']
         return self._make_network_profile_dict(update_network_profile(id, p))
 
     def get_network_profiles(self, context, filters=None, fields=None):
