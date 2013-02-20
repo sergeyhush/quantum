@@ -639,8 +639,8 @@ class NetworkProfile_db_mixin(object):
                'multicast_ip_range': profile['multicast_ip_range']}
         return self._fields(res, fields)
 
-    def create_network_profile(self, context, profile):
-        p = profile['networkprofile']
+    def create_network_profile(self, context, network_profile):
+        p = network_profile['network_profile']
         tenant_id = self._get_tenant_id_for_create(context, p)
         _profile = self._make_network_profile_dict(create_network_profile(p))
         create_profile_binding(tenant_id, _profile.id, 'network')

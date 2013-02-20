@@ -783,7 +783,7 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
             fields)
         return [self._fields(subnet, fields) for subnet in subnets]
 
-    def create_network_profile(self, context, profile):
-        profile = super(N1kvQuantumPluginV2, self).create_network_profile(context, profile)
+    def create_network_profile(self, context, network_profile):
+        network_profile = super(N1kvQuantumPluginV2, self).create_network_profile(context, network_profile)
         self._replace_fake_tanant_id_with_real(context)
-        return profile
+        return network_profile
