@@ -651,6 +651,11 @@ def delete_profile_binding(tenant_id, profile_id):
     with session.begin(subtransactions=True):
         session.delete(binding)
 
+def _delete_profile_binding_for_profile_id(profile_id):
+    LOG.debug("delete_profile_binding()")
+    session = db.get_session()
+    session.query(n1kv_models_v2.ProfileBinding).filter(n1kv_models_v2.ProfileBinding.profile_id==profile_id).delete()
+
 
 class NetworkProfile_db_mixin(object):
     """
@@ -674,7 +679,9 @@ class NetworkProfile_db_mixin(object):
         return self._make_network_profile_dict(net_profile)
 
     def delete_network_profile(self, context, id):
+        #TODO make them session atomic
         delete_network_profile(id)
+        _delete_profile_binding_for_profile_id(id)
 
     def update_network_profile(self, context, id, network_profile):
         p = network_profile['network_profile']
@@ -682,7 +689,7 @@ class NetworkProfile_db_mixin(object):
             return self.add_network_profile_tenant(p.id, p.add_tenant)
         elif context.is_admin and p.remove_tenant:
             #TODO Finish
-            self.remove_network_profile_tenant(p.id, p.remove_tenant)
+            delete_profile_binding(p.add_tenant, p.id)
             return
         else:
             return self._make_network_profile_dict(update_network_profile(id, p))
@@ -705,8 +712,6 @@ class NetworkProfile_db_mixin(object):
         """
         return create_profile_binding(tenant_id, profile_id, 'network')
 
-    def remove_network_profile_tenant(self, profile_id, tenant_id):
-        delete_profile_binding(tenant_id, profile_id)
 
 
 class PolicyProfile_db_mixin(object):
@@ -739,6 +744,10 @@ class PolicyProfile_db_mixin(object):
         :return:
         """
         return create_profile_binding(tenant_id, profile_id, 'policy')
+
+    def remove_policy_profile_tenant(self, profile_id, tenant_id):
+        delete_profile_binding(tenant_id, profile_id)
+
 
     def _replace_fake_tanant_id_with_real(self, context):
         """
