@@ -653,6 +653,9 @@ def delete_profile_binding(tenant_id, profile_id):
 
 
 class NetworkProfile_db_mixin(object):
+    """
+    Network Profile Mixin
+    """
 
     def _make_network_profile_dict(self, profile, fields=None):
         res = {'id': profile['id'],
@@ -673,17 +676,21 @@ class NetworkProfile_db_mixin(object):
     def delete_network_profile(self, context, id):
         delete_network_profile(id)
 
-    def get_network_profile(self, context, id, fields=None):
-        profile = get_network_profile(id, fields)
-        return self._make_network_profile_dict(profile, fields)
-
     def update_network_profile(self, context, id, network_profile):
         p = network_profile['network_profile']
-        return self._make_network_profile_dict(update_network_profile(id, p))
+        if context.is_admin and p.add_tenant:
+            return self.add_network_profile_tenant(p.id, p.add_tenant)
+        elif context.is_admin and p.remove_tenant:
+            #TODO Finish
+            pass
+        else:
+            return self._make_network_profile_dict(update_network_profile(id, p))
+
+    def get_network_profile(self, context, id, fields=None):
+        profile = self._get_by_id(context, n1kv_models_v2.NetworkProfile, id)
+        return self._make_network_profile_dict(profile, fields)
 
     def get_network_profiles(self, context, filters=None, fields=None):
-        # profiles = get_all_network_profiles()
-        # return profiles
         return self._get_collection(context, n1kv_models_v2.NetworkProfile,
                                     self._make_network_profile_dict,
                                     filters=filters, fields=fields)
@@ -699,6 +706,9 @@ class NetworkProfile_db_mixin(object):
 
 
 class PolicyProfile_db_mixin(object):
+    """
+    Policy Profile Mixin
+    """
 
     def _make_policy_profile_dict(self, profile, fields=None):
         res = {'id': profile['id'], 'name': profile['name']}
@@ -709,12 +719,10 @@ class PolicyProfile_db_mixin(object):
         return session.query(n1kv_models_v2.PolicyProfile).filter_by(id=id).count() and True or False
 
     def get_policy_profile(self, context, id, fields=None):
-        # return get_policy_profile(id, fields)
-        profile = get_policy_profile(id, fields)
+        profile = self._get_by_id(context, n1kv_models_v2.PolicyProfile, id)
         return self._make_policy_profile_dict(profile, fields)
 
     def get_policy_profiles(self, context, filters=None, fields=None):
-        # return get_all_policy_profiles()
         return self._get_collection(context, n1kv_models_v2.PolicyProfile,
                                     self._make_policy_profile_dict,
                                     filters=filters, fields=fields)
