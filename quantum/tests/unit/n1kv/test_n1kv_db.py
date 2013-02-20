@@ -33,7 +33,7 @@ TUN_MAX = 109
 TUNNEL_RANGES = [(TUN_MIN, TUN_MAX)]
 UPDATED_TUNNEL_RANGES = [(TUN_MIN + 5, TUN_MAX + 5)]
 TEST_NETWORK_ID = 'abcdefghijklmnopqrstuvwxyz'
-TEST_NETWORK_PROFILE = {'name': 'test_profile', 'segment_type': 'vlan', 'multicast_ip_range': '200-300'}
+TEST_NETWORK_PROFILE = {'name': 'test_profile', 'segment_type': 'vlan', 'segment_range': '200-300'}
 TEST_POLICY_PROFILE = {'id': '4a417990-76fb-11e2-bcfd-0800200c9a66', 'name': 'test_policy_profile'}
 
 
@@ -337,13 +337,13 @@ class NetworkProfileTests(unittest2.TestCase):
         self.assertEqual(profile.name, got_profile.name)
 
     def test_get_all_network_profiles(self):
-        test_profiles = [{'name': 'test_profile1', 'segment_type': 'vlan', 'multicast_ip_range': '200-210'},
-                         {'name': 'test_profile2', 'segment_type': 'vlan', 'multicast_ip_range': '211-220'},
-                         {'name': 'test_profile3', 'segment_type': 'vlan', 'multicast_ip_range': '221-230'},
-                         {'name': 'test_profile4', 'segment_type': 'vlan', 'multicast_ip_range': '231-240'},
-                         {'name': 'test_profile5', 'segment_type': 'vlan', 'multicast_ip_range': '241-250'},
-                         {'name': 'test_profile6', 'segment_type': 'vlan', 'multicast_ip_range': '251-260'},
-                         {'name': 'test_profile7', 'segment_type': 'vlan', 'multicast_ip_range': '261-270'}]
+        test_profiles = [{'name': 'test_profile1', 'segment_type': 'vlan', 'segment_range': '200-210'},
+                         {'name': 'test_profile2', 'segment_type': 'vlan', 'segment_range': '211-220'},
+                         {'name': 'test_profile3', 'segment_type': 'vlan', 'segment_range': '221-230'},
+                         {'name': 'test_profile4', 'segment_type': 'vlan', 'segment_range': '231-240'},
+                         {'name': 'test_profile5', 'segment_type': 'vlan', 'segment_range': '241-250'},
+                         {'name': 'test_profile6', 'segment_type': 'vlan', 'segment_range': '251-260'},
+                         {'name': 'test_profile7', 'segment_type': 'vlan', 'segment_range': '261-270'}]
         [n1kv_db_v2.create_network_profile(p) for p in test_profiles]
         #TODO Fix this test to work with real tenant_td
         profiles = n1kv_db_v2.get_all_network_profiles(None)
