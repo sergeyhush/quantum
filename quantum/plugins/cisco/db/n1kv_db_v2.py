@@ -682,7 +682,8 @@ class NetworkProfile_db_mixin(object):
             return self.add_network_profile_tenant(p.id, p.add_tenant)
         elif context.is_admin and p.remove_tenant:
             #TODO Finish
-            pass
+            self.remove_network_profile_tenant(p.id, p.remove_tenant)
+            return
         else:
             return self._make_network_profile_dict(update_network_profile(id, p))
 
@@ -703,6 +704,9 @@ class NetworkProfile_db_mixin(object):
         :return:
         """
         return create_profile_binding(tenant_id, profile_id, 'network')
+
+    def remove_network_profile_tenant(self, profile_id, tenant_id):
+        delete_profile_binding(tenant_id, profile_id)
 
 
 class PolicyProfile_db_mixin(object):
