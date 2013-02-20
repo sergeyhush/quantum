@@ -581,6 +581,7 @@ def get_all_policy_profiles(tenant_id):
     except exc.NoResultFound:
         return []
 
+
 def create_profile_binding(tenant_id, profile_id, profile_type):
     """
     Create Network/Policy Profile binding
@@ -596,6 +597,14 @@ def create_profile_binding(tenant_id, profile_id, profile_type):
         binding = n1kv_models_v2.ProfileBinding(profile_type=profile_type, profile_id=profile_id, tenant_id=tenant_id)
         session.add(binding)
         return binding
+
+
+def _profile_binding_exists(tenant_id, profile_id, profile_type):
+    LOG.debug("get_profile_binding()")
+    session = db.get_session()
+    return session.query(n1kv_models_v2.ProfileBinding).\
+               filter_by(profile_type=profile_type, profile_id=profile_id, tenant_id=tenant_id).\
+               count() and True or False
 
 
 def get_profile_binding(tenant_id, profile_id):
@@ -671,6 +680,10 @@ class PolicyProfile_db_mixin(object):
         res = {'id': profile['id'], 'name': profile['name']}
         return self._fields(res, fields)
 
+    def _policy_profile_exists(self, id):
+        session = db.get_session()
+        return session.query(n1kv_models_v2.PolicyProfile).filter_by(id=id).count() and True or False
+
     def get_policy_profile(self, context, id, fields=None):
         # return get_policy_profile(id, fields)
         profile = get_policy_profile(id, fields)
@@ -707,5 +720,7 @@ class PolicyProfile_db_mixin(object):
         """
         profile = {'id': profile_id, 'name': profile_name}
         tenant_id = tenant_id or n1kv_models_v2.TENANT_ID_NOT_SET
-        create_policy_profile(profile)
-        create_profile_binding(tenant_id, profile['id'], 'policy')
+        if not self._policy_profile_exists(id):
+            create_policy_profile(profile)
+        if not _profile_binding_exists(tenant_id, profile['id'], 'policy'):
+            create_profile_binding(tenant_id, profile['id'], 'policy')
