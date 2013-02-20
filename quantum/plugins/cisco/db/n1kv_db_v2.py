@@ -454,6 +454,7 @@ def delete_network_profile(id):
     profile = get_network_profile(id)
     with session.begin(subtransactions=True):
         session.delete(profile)
+        session.query(n1kv_models_v2.ProfileBinding).filter(n1kv_models_v2.ProfileBinding.profile_id==id).delete()
 
 
 def update_network_profile(id, profile):
@@ -489,21 +490,6 @@ def get_network_profile(id, fields=None):
         raise c_exc.ProfileIdNotFound(profile_id=id)
 
 
-def get_all_network_profiles(tenant_id):
-    """
-    List all network profiles
-    :param tenant_id:
-    :return:
-    """
-    LOG.debug("get_all_network_profiles()")
-    session = db.get_session()
-    try:
-        #TODO Filter by tenant id
-        profiles = (session.query(n1kv_models_v2.NetworkProfile).all())
-        return profiles
-    except exc.NoResultFound:
-        return []
-
 def create_policy_profile(profile):
     """
      Create Policy Profile
@@ -532,10 +518,10 @@ def delete_policy_profile(id):
     with session.begin(subtransactions=True):
         session.delete(profile)
 
+
 def update_policy_profile(id, profile):
     """
 
-    :param context:
     :param id:
     :param profile:
     :return:
@@ -564,22 +550,6 @@ def get_policy_profile(id, fields=None):
         return profile
     except exc.NoResultFound:
         raise c_exc.ProfileIdNotFound(profile_id=id)
-
-
-def get_all_policy_profiles(tenant_id):
-    """
-    List all policy profiles
-    :param tenant_id:
-    :return:
-    """
-    LOG.debug("get_all_policy_profiles()")
-    session = db.get_session()
-    try:
-        #TODO Filter by tenant id
-        profiles = (session.query(n1kv_models_v2.PolicyProfile).all())
-        return profiles
-    except exc.NoResultFound:
-        return []
 
 
 def create_profile_binding(tenant_id, profile_id, profile_type):
@@ -651,11 +621,6 @@ def delete_profile_binding(tenant_id, profile_id):
     with session.begin(subtransactions=True):
         session.delete(binding)
 
-def _delete_profile_binding_for_profile_id(profile_id):
-    LOG.debug("delete_profile_binding()")
-    session = db.get_session()
-    session.query(n1kv_models_v2.ProfileBinding).filter(n1kv_models_v2.ProfileBinding.profile_id==profile_id).delete()
-
 
 class NetworkProfile_db_mixin(object):
     """
@@ -679,18 +644,16 @@ class NetworkProfile_db_mixin(object):
         return self._make_network_profile_dict(net_profile)
 
     def delete_network_profile(self, context, id):
-        #TODO make them session atomic
         delete_network_profile(id)
-        _delete_profile_binding_for_profile_id(id)
 
     def update_network_profile(self, context, id, network_profile):
         p = network_profile['network_profile']
         if context.is_admin and p.add_tenant:
-            return self.add_network_profile_tenant(p.id, p.add_tenant)
+            self.add_network_profile_tenant(p.id, p.add_tenant)
+            return self._make_network_profile_dict(get_network_profile(id))
         elif context.is_admin and p.remove_tenant:
-            #TODO Finish
             delete_profile_binding(p.add_tenant, p.id)
-            return
+            return self._make_network_profile_dict(get_network_profile(id))
         else:
             return self._make_network_profile_dict(update_network_profile(id, p))
 
@@ -748,7 +711,6 @@ class PolicyProfile_db_mixin(object):
     def remove_policy_profile_tenant(self, profile_id, tenant_id):
         delete_profile_binding(tenant_id, profile_id)
 
-
     def _replace_fake_tanant_id_with_real(self, context):
         """
         Replace fake tenant id for all Policy Profile binding with real admin tenant ID
@@ -762,7 +724,6 @@ class PolicyProfile_db_mixin(object):
                 session.query(n1kv_models_v2.ProfileBinding).\
                     filter_by(tenant_id=n1kv_models_v2.TENANT_ID_NOT_SET).\
                     update({'tenant_id': tenant_id})
-
 
     def _add_policy_profile(self, profile_name, profile_id, tenant_id=None):
         """
