@@ -514,7 +514,7 @@ def create_policy_profile(profile):
     LOG.debug("create_policy_profile()")
     session = db.get_session()
     with session.begin(subtransactions=True):
-        p_profile = n1kv_models_v2.PolicyProfile(profile['id'], profile['name'])
+        p_profile = n1kv_models_v2.PolicyProfile(id=profile['id'], name=profile['name'])
         session.add(p_profile)
         return p_profile
 
