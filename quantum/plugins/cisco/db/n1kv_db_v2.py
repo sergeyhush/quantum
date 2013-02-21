@@ -739,5 +739,6 @@ class PolicyProfile_db_mixin(object):
         tenant_id = tenant_id or n1kv_models_v2.TENANT_ID_NOT_SET
         if not self._policy_profile_exists(profile_id):
             create_policy_profile(profile)
-        if not _profile_binding_exists(tenant_id, profile['id'], 'policy'):
+        if not (_profile_binding_exists(tenant_id, profile['id'], 'policy') or
+                _profile_binding_exists(n1kv_models_v2.TENANT_ID_NOT_SET, profile['id'], 'policy')):
             create_profile_binding(tenant_id, profile['id'], 'policy')
