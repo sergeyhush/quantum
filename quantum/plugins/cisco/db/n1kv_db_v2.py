@@ -22,6 +22,7 @@
 
 
 import logging
+import re
 
 from sqlalchemy.orm import exc
 from sqlalchemy.sql import and_
@@ -33,6 +34,8 @@ from quantum.plugins.cisco.common import cisco_constants as const
 from quantum.plugins.cisco.db import n1kv_models_v2
 from quantum.plugins.cisco.db import n1kv_profile_db
 from quantum.plugins.cisco.common import cisco_exceptions as c_exc
+from quantum.plugins.cisco.n1kv import n1kv_configuration as conf
+from quantum.api.v2.attributes import _validate_ip_address
 from quantum.extensions import profile
 
 LOG = logging.getLogger(__name__)
@@ -188,16 +191,14 @@ def reserve_vxlan(session, profile):
 def alloc_network(session, profile_id):
     with session.begin(subtransactions=True):
         try:
-            profile = (session.query(n1kv_profile_db.N1kvProfile_db).
-                    filter_by(id=profile_id).one())
-                    #filter_by(profile_id=profile_id).one())   @@@@@@@@@@
+            profile = get_network_profile(profile_id)
             if profile:
                 if profile.segment_type == 'vlan':
                     return reserve_vlan(session, profile)
                 else:
                     return reserve_vxlan(session, profile)
         except q_exc.NotFound:
-            LOG.debug("N1kvProfile_db not found")
+            LOG.debug("NetworkProfile not found")
 
 
 def reserve_specific_vlan(session, physical_network, vlan_id):
@@ -487,7 +488,7 @@ def get_network_profile(id, fields=None):
         profile = session.query(n1kv_models_v2.NetworkProfile).filter_by(id=id).one()
         return profile
     except exc.NoResultFound:
-        raise c_exc.ProfileIdNotFound(profile_id=id)
+        raise c_exc.NetworkProfileIdNotFound(profile_id=id)
 
 
 def create_policy_profile(profile):
@@ -549,7 +550,7 @@ def get_policy_profile(id, fields=None):
         profile = session.query(n1kv_models_v2.PolicyProfile).filter_by(id=id).one()
         return profile
     except exc.NoResultFound:
-        raise c_exc.ProfileIdNotFound(profile_id=id)
+        raise c_exc.PolicyProfileIdNotFound(profile_id=id)
 
 
 def create_profile_binding(tenant_id, profile_id, profile_type):
@@ -676,6 +677,107 @@ class NetworkProfile_db_mixin(object):
         :return:
         """
         return create_profile_binding(tenant_id, profile_id, 'network')
+
+    def _get_segment_range(self, data):
+        # Sort the range to ensure min, max is in order
+        seg_min, seg_max = sorted(map(int, data.split('-')))
+        return (seg_min, seg_max)
+
+    def _validate_vlan(self, p):
+        """Validate if vlan falls within segment boundaries."""
+
+        seg_min, seg_max = self._get_segment_range(p['segment_range'])
+        ranges = conf.N1KV['network_vlan_ranges']
+        ranges = ranges.split(',')
+        for entry in ranges:
+            entry = entry.strip()
+            if ':' in entry:
+                g_phy_nw, g_seg_min, g_seg_max = entry.split(':')
+                if (seg_min < int(g_seg_min)) or (seg_max > int(g_seg_max)):
+                    msg = _("Vlan out of range")
+                    LOG.exception(msg)
+                    raise q_exc.InvalidInput(error_message=msg)
+
+    def _validate_vxlan(self, p):
+        """Validate if vxlan falls within segment boundaries."""
+
+        seg_min, seg_max = self._get_segment_range(p['segment_range'])
+        ranges = conf.N1KV['vxlan_id_ranges']
+        ranges = ranges.split(',')
+        g_seg_min, g_seg_max = map(int, ranges[0].split(':'))
+        LOG.debug("segmin %s segmax %s gsegmin %s gsegmax %s", seg_min,
+                  seg_max, g_seg_min, g_seg_max)
+        if (seg_min < g_seg_min) or (seg_max > g_seg_max):
+            msg = _("Vxlan out of range")
+            LOG.exception(msg)
+            raise q_exc.InvalidInput(error_message=msg)
+        if p['multicast_ip_range'] == '0.0.0.0':
+            msg = _("Multicast ip range is required")
+            raise q_exc.InvalidInput(error_message=msg)
+        if p['multicast_ip_range'].count('-') != 1:
+            msg = _("invalid ip range. example range: 225.280.100.10-"
+                    "225.280.100.20")
+            raise q_exc.InvalidInput(error_message=msg)
+        for ip in p['multicast_ip_range'].split('-'):
+            if _validate_ip_address(ip) != None:
+                msg = _("invalid ip address %s" % ip)
+                raise q_exc.InvalidInput(error_message=msg)
+
+    def _validate_segment_range(self, p):
+        """Validate segment range values."""
+
+        mo = re.match(r"(\d+)\-(\d+)", p['segment_range'])
+        if mo is None:
+            msg = _("invalid segment range. example range: 500-550")
+            raise q_exc.InvalidInput(error_message=msg)
+
+    def _validate_network_profile(self, p):
+        """Validate completeness of a network profile arguments."""
+
+        if any(p[arg] == '' for arg in ('segment_type', 'segment_range')):
+            msg = _("arguments segment_type and segment_range missing"
+                    " for network profile")
+            LOG.exception(msg)
+            raise q_exc.InvalidInput(error_message=msg)
+        if p['segment_type'].lower() not in ['vlan', 'vxlan']:
+            msg = _("segment_type should either be vlan or vxlan")
+            LOG.exception(msg)
+            raise q_exc.InvalidInput(error_message=msg)
+        self._validate_segment_range(p)
+        if p['segment_type'].lower() == 'vlan':
+            self._validate_vlan(p)
+            p['multicast_ip_range'] = '0.0.0.0'
+        else:
+            self._validate_vxlan(p)
+
+    def _validate_segment_range_uniqueness(self, context, p):
+        """Validate that segment range doesn't overlap."""
+
+        profiles = self.get_network_profiles(context)
+        for prfl in profiles:
+            if p['name'] == prfl['name']:
+                msg = _("NetworkProfile name %s already exists" % p['name'])
+                LOG.exception(msg)
+                raise q_exc.InvalidInput(error_message=msg)
+            seg_min, seg_max = self._get_segment_range(p['segment_range'])
+            prfl_seg_min, prfl_seg_max = self._get_segment_range(
+                prfl['segment_range'])
+            if (((seg_min >= prfl_seg_min) and
+                 (seg_min <= prfl_seg_max)) or
+                ((seg_max >= prfl_seg_min) and
+                 (seg_max <= prfl_seg_max)) or
+                ((seg_min <= prfl_seg_min) and
+                 (seg_max >= prfl_seg_max))):
+                msg = _("segment range overlaps with another profile")
+                LOG.exception(msg)
+                raise q_exc.InvalidInput(error_message=msg)
+
+    def _validate_arguments(self, context, p):
+        """Validate completeness of N1kv network profile arguments."""
+
+        self._validate_network_profile(p)
+        self._validate_segment_range_uniqueness(context, p)
+
 
 
 

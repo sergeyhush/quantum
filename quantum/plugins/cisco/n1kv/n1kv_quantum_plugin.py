@@ -453,10 +453,10 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
     def _send_register_request(self):
         LOG.debug('_send_register_request')
 
-    def _send_create_network_request(self, network):
+    def _send_create_network_request(self, context, network):
         """ Send Create network request to VSM """
         LOG.debug('_send_create_network_request: %s', network['id'])
-        profile = self.get_profile_by_id(network[n1kv_profile.PROFILE_ID])
+        profile = self.get_network_profile(context, network[n1kv_profile.PROFILE_ID])
         n1kvclient = n1kv_client.Client()
         n1kvclient.create_network_segment_pool(profile)
         if network[provider.NETWORK_TYPE] == const.TYPE_VXLAN:
@@ -570,7 +570,7 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
             self._extend_network_dict_profile(context, net)
 
         #TODO: later move under port
-        self._send_create_network_request(net)
+        self._send_create_network_request(context, net)
             # note - exception will rollback entire transaction
         LOG.debug("Created network: %s", net['id'])
         return net

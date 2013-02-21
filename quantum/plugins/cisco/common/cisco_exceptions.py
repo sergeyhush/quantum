@@ -163,6 +163,27 @@ class ProfileIdNotFound(exceptions.QuantumException):
     message = _("Profile %(profile_id)s could not be found ")
 
 
+class PolicyProfileAlreadyExists(exceptions.QuantumException):
+    """Policy Profile cannot be created since it already exists"""
+    message = _("Policy Profile %(profile_id)s "
+                "already exists.")
+
+
+class PolicyProfileIdNotFound(exceptions.QuantumException):
+    """Policy Profile cannot be found"""
+    message = _("Policy Profile %(profile_id)s could not be found ")
+
+class NetworkProfileAlreadyExists(exceptions.QuantumException):
+    """Network Profile cannot be created since it already exists"""
+    message = _("Network Profile %(profile_id)s "
+                "already exists.")
+
+
+class NetworkProfileIdNotFound(exceptions.QuantumException):
+    """Network Profile cannot be found"""
+    message = _("Network Profile %(profile_id)s could not be found ")
+
+
 class VxlanIdInUse(exceptions.QuantumException):
     """
     VXLAN Id is in use
