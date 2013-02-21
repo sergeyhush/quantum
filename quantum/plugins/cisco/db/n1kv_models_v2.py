@@ -253,7 +253,7 @@ class ProfileBinding(model_base.BASEV2):
     """ Represents a binding of Network Profile or Policy Profile to tenant_id"""
     __tablename__ = 'profile_bindings'
 
-    profile_type = Column(PROFILE_TYPE, primary_key=True)
+    profile_type = Column(PROFILE_TYPE)
     tenant_id = Column(String(36), primary_key=True, default=TENANT_ID_NOT_SET)
     profile_id = Column(String(36), primary_key=True)
 
