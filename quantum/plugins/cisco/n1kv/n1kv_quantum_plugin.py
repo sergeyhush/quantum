@@ -255,6 +255,7 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
         :return:
         """
         LOG.debug('_poll_policies')
+        self._remove_all_fake_policy_profiles()
         client = n1kv_client.Client()
         policy_profiles = client.list_profiles()
         for profile in policy_profiles[const.SET]:

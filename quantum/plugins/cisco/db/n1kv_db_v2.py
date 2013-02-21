@@ -713,6 +713,29 @@ class PolicyProfile_db_mixin(object):
     def remove_policy_profile_tenant(self, profile_id, tenant_id):
         delete_profile_binding(tenant_id, profile_id)
 
+    def _delete_policy_profile(self, profile_id):
+        """
+
+        :param profile_id:
+        :return:
+        """
+        session = db.get_session()
+        with session.begin(subtransactions=True):
+            session.query(n1kv_models_v2.PolicyProfile).\
+                filter(n1kv_models_v2.PolicyProfile.profile_id == profile_id).delete()
+            session.query(n1kv_models_v2.ProfileBinding).\
+                filter(n1kv_models_v2.ProfileBinding.profile_id == profile_id).delete()
+
+    def _remove_all_fake_policy_profiles(self):
+        """
+        Remove all policy profiles associated with fake tenant id
+        :return:
+        """
+        session = db.get_session()
+        with session.begin(subtransactions=True):
+            session.query(n1kv_models_v2.ProfileBinding).\
+                filter_by(tenant_id=n1kv_models_v2.TENANT_ID_NOT_SET, profile_type='policy').delete()
+
     def _replace_fake_tanant_id_with_real(self, context):
         """
         Replace fake tenant id for all Policy Profile binding with real admin tenant ID
@@ -739,6 +762,5 @@ class PolicyProfile_db_mixin(object):
         tenant_id = tenant_id or n1kv_models_v2.TENANT_ID_NOT_SET
         if not self._policy_profile_exists(profile_id):
             create_policy_profile(profile)
-        if not (_profile_binding_exists(tenant_id, profile['id'], 'policy') or
-                _profile_binding_exists(n1kv_models_v2.TENANT_ID_NOT_SET, profile['id'], 'policy')):
+        if not _profile_binding_exists(tenant_id, profile['id'], 'policy'):
             create_profile_binding(tenant_id, profile['id'], 'policy')
