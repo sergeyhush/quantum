@@ -18,6 +18,8 @@
 # @author: Aruna Kushwaha, Cisco Systems, Inc.
 # @author: Abhishek Raut, Cisco Systems, Inc.
 
+import logging
+
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Enum
 
 from quantum.db.models_v2 import model_base, HasId
