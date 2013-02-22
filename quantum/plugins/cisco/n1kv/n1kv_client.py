@@ -159,7 +159,7 @@ class Client(n1kv_profile_db.N1kvProfile_db_mixin):
         """
         LOG.debug("network_segment_pool")
         body = {'name': profile['name'],
-                'id': profile['profile_id'],
+                'id': profile['id'],
                 'fabricNetworkName': 'test'}
         return self._post(self.network_segment_pools_path, body=body, params=_params)
 
