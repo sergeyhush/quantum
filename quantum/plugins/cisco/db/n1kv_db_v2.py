@@ -680,7 +680,7 @@ class NetworkProfile_db_mixin(object):
 
     def network_profile_exists(self, context, id):
         try:
-            profile = get_network_profile(context, id)
+            profile = get_network_profile(id)
             if profile == None:
                 return False
             else:
