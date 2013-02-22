@@ -78,10 +78,14 @@ class PortNotFound(NotFound):
     message = _("Port %(port_id)s could not be found "
                 "on network %(net_id)s")
 
-
 class PolicyNotFound(NotFound):
     message = _("Policy configuration policy.json could not be found")
 
+class NetworkProfileNotFound(NotFound):
+    message = _("Network profile %(profile_id) could not be found")
+
+class PolicyProfileNotFound(NotFound):
+    message = _("Policy profile %(profile_id) could not be found")
 
 class StateInvalid(BadRequest):
     message = _("Unsupported port state: %(port_state)s")

@@ -658,7 +658,13 @@ class NetworkProfile_db_mixin(object):
             return self._make_network_profile_dict(update_network_profile(id, p))
 
     def get_network_profile(self, context, id, fields=None):
-        profile = self._get_by_id(context, n1kv_models_v2.NetworkProfile, id)
+        try:
+            profile = self._get_by_id(context, n1kv_models_v2.NetworkProfile, id)
+        except exc.NoResultFound:
+            raise q_exc.NetworkProfileNotFound(profile_id=id)
+        except exc.MultipleResultsFound:
+            LOG.error(_('Multiple network profiles match for %s'), id)
+            raise q_exc.NetworkProfileNotFound(profile_id=id)
         return self._make_network_profile_dict(profile, fields)
 
     def get_network_profiles(self, context, filters=None, fields=None):
@@ -818,6 +824,16 @@ class PolicyProfile_db_mixin(object):
 
     def get_policy_profile(self, context, id, fields=None):
         profile = self._get_by_id(context, n1kv_models_v2.PolicyProfile, id)
+        return self._make_policy_profile_dict(profile, fields)
+
+    def get_policy_profile(self, context, id, fields=None):
+        try:
+            profile = self._get_by_id(context, n1kv_models_v2.PolicyProfile, id)
+        except exc.NoResultFound:
+            raise q_exc.PolicyProfileNotFound(profile_id=id)
+        except exc.MultipleResultsFound:
+            LOG.error(_('Multiple policy profiles match for %s'), id)
+            raise q_exc.PolicyProfileNotFound(profile_id=id)
         return self._make_policy_profile_dict(profile, fields)
 
     def get_policy_profiles(self, context, filters=None, fields=None):
