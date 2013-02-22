@@ -478,6 +478,11 @@ def get_network_profile(id, fields=None):
 
 
 def _get_network_profiles():
+    """
+    Get Network Profiles
+
+    :return:
+    """
     session = db.get_session()
     return session.query(n1kv_models_v2.NetworkProfile).all()
 
@@ -779,13 +784,14 @@ class NetworkProfile_db_mixin(object):
         """
         profiles = _get_network_profiles() #self.get_network_profiles(context)
         for prfl in profiles:
-            if p['name'] == prfl['name']:
+            _name = prfl.name
+            _segment_range = prfl.segment_range
+            if p['name'] == _name:
                 msg = _("NetworkProfile name %s already exists" % p['name'])
                 LOG.exception(msg)
                 raise q_exc.InvalidInput(error_message=msg)
             seg_min, seg_max = self._get_segment_range(p['segment_range'])
-            prfl_seg_min, prfl_seg_max = self._get_segment_range(
-                prfl['segment_range'])
+            prfl_seg_min, prfl_seg_max = self._get_segment_range(_segment_range)
             if (((seg_min >= prfl_seg_min) and
                  (seg_min <= prfl_seg_max)) or
                 ((seg_max >= prfl_seg_min) and
