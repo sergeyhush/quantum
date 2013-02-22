@@ -418,7 +418,6 @@ def create_network_profile(profile):
     """
     LOG.debug("create_network_profile()")
     session = db.get_session()
-    _validate_network_profile_obj(profile)
     with session.begin(subtransactions=True):
         if profile['segment_type'] == 'vlan':
             net_profile = n1kv_models_v2.NetworkProfile(name=profile['name'], segment_type=profile['segment_type'],
@@ -429,19 +428,6 @@ def create_network_profile(profile):
         session.add(net_profile)
         return net_profile
 
-
-def _validate_network_profile_obj(profile):
-    """
-    Validate Network profile object that was passed in
-    :param profile:
-    """
-    if profile['segment_type'] not in ('vlan', 'vxlan'):
-        raise q_exc.QuantumException('Profile type must be VLAN or VxLAN')
-    #TODO Finish all validations
-    if profile['segment_type'] == 'vlan':
-        pass
-    elif profile['segment_type'] == 'vxlan':
-        pass
 
 def delete_network_profile(id):
     """
@@ -639,6 +625,7 @@ class NetworkProfile_db_mixin(object):
 
     def create_network_profile(self, context, network_profile):
         p = network_profile['network_profile']
+        self._validate_network_profile_args(context, p)
         tenant_id = self._get_tenant_id_for_create(context, p)
         net_profile = create_network_profile(p)
         create_profile_binding(tenant_id, net_profile.id, 'network')
@@ -681,18 +668,25 @@ class NetworkProfile_db_mixin(object):
     def network_profile_exists(self, context, id):
         try:
             profile = get_network_profile(id)
-            if profile == None:
-                return False
-            else:
-                return True
+            return profile and True or False
         except exc.NoResultFound:
             raise c_exc.NetworkProfileIdNotFound(profile_id=id)
-
 
     def _get_segment_range(self, data):
         # Sort the range to ensure min, max is in order
         seg_min, seg_max = sorted(map(int, data.split('-')))
         return (seg_min, seg_max)
+
+    def _validate_network_profile_args(self, context, p):
+        """
+        Validate completeness of Nexus1000V network profile arguments.
+        :param context:
+        :param p:
+        :return:
+        """
+        #TODO Cleanup validation logic
+        self._validate_network_profile(p)
+        self._validate_segment_range_uniqueness(context, p)
 
     def _validate_vlan(self, p):
         """Validate if vlan falls within segment boundaries."""
@@ -710,8 +704,11 @@ class NetworkProfile_db_mixin(object):
                     raise q_exc.InvalidInput(error_message=msg)
 
     def _validate_vxlan(self, p):
-        """Validate if vxlan falls within segment boundaries."""
-
+        """
+        Validate if vxlan falls within segment boundaries.
+        :param p:
+        :return:
+        """
         seg_min, seg_max = self._get_segment_range(p['segment_range'])
         ranges = conf.N1KV['vxlan_id_ranges']
         ranges = ranges.split(',')
@@ -735,16 +732,22 @@ class NetworkProfile_db_mixin(object):
                 raise q_exc.InvalidInput(error_message=msg)
 
     def _validate_segment_range(self, p):
-        """Validate segment range values."""
-
+        """
+        Validate segment range values.
+        :param p:
+        :return:
+        """
         mo = re.match(r"(\d+)\-(\d+)", p['segment_range'])
         if mo is None:
             msg = _("invalid segment range. example range: 500-550")
             raise q_exc.InvalidInput(error_message=msg)
 
     def _validate_network_profile(self, p):
-        """Validate completeness of a network profile arguments."""
-
+        """
+        Validate completeness of a network profile arguments.
+        :param p:
+        :return:
+        """
         if any(p[arg] == '' for arg in ('segment_type', 'segment_range')):
             msg = _("arguments segment_type and segment_range missing"
                     " for network profile")
@@ -782,14 +785,6 @@ class NetworkProfile_db_mixin(object):
                 msg = _("segment range overlaps with another profile")
                 LOG.exception(msg)
                 raise q_exc.InvalidInput(error_message=msg)
-
-    def _validate_arguments(self, context, p):
-        """Validate completeness of N1kv network profile arguments."""
-
-        self._validate_network_profile(p)
-        self._validate_segment_range_uniqueness(context, p)
-
-
 
 
 class PolicyProfile_db_mixin(object):

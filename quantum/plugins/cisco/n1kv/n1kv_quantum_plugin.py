@@ -454,14 +454,19 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
         LOG.debug('_send_register_request')
 
     def _send_create_network_request(self, context, network):
-        """ Send Create network request to VSM """
+        """
+        Send Create network request to VSM.
+        :param context:
+        :param network:
+        :return:
+        """
         LOG.debug('_send_create_network_request: %s', network['id'])
         profile = self.get_network_profile(context, network[n1kv_profile.PROFILE_ID])
         n1kvclient = n1kv_client.Client()
         n1kvclient.create_network_segment_pool(profile)
         if network[provider.NETWORK_TYPE] == const.TYPE_VXLAN:
             n1kvclient.create_bridge_domain(network)
-        n1kvclient.create_network_segment(network)
+        n1kvclient.create_network_segment(network, profile)
 
     def _send_update_network_request(self, network):
         """ Send Update network request to VSM """

@@ -126,11 +126,11 @@ class Client(n1kv_profile_db.N1kvProfile_db_mixin):
                 'groupIp': network[n1kv_profile.MULTICAST_IP], }
         return self._post(self.bridge_domains_path, body=body, params=_params)
 
-    def create_network_segment(self, network, **_params):
+    def create_network_segment(self, network, profile, **_params):
         """
         Creates a Nework Segment on the VSM
         """
-        profile = self.get_profile_by_id(network[n1kv_profile.PROFILE_ID])
+        # profile = self.get_profile_by_id(network[n1kv_profile.PROFILE_ID])
         LOG.debug("seg id %s\n", profile['name'])
         body = {'name': network['name'],
                 'id': network['id'],
