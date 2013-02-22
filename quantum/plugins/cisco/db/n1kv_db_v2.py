@@ -678,6 +678,17 @@ class NetworkProfile_db_mixin(object):
         """
         return create_profile_binding(tenant_id, profile_id, 'network')
 
+    def network_profile_exists(self, context, id):
+        try:
+            profile = get_network_profile(context, id)
+            if profile == None:
+                return False
+            else:
+                return True
+        except exc.NoResultFound:
+            raise c_exc.NetworkProfileIdNotFound(profile_id=id)
+
+
     def _get_segment_range(self, data):
         # Sort the range to ensure min, max is in order
         seg_min, seg_max = sorted(map(int, data.split('-')))

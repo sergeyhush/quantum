@@ -443,7 +443,7 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
         if not profile_id_set:
             msg = _("n1kv:profile_id does not exist")
             raise q_exc.InvalidInput(error_message=msg)
-        if not self.network_profile_exist(context, profile_id):
+        if not self.network_profile_exists(context, profile_id):
             msg = _("n1kv:profile_id does not exist")
             raise q_exc.InvalidInput(error_message=msg)
 
