@@ -831,18 +831,29 @@ class PolicyProfile_db_mixin(object):
         with session.begin(subtransactions=True):
             session.query(n1kv_models_v2.PolicyProfile).\
                 filter(n1kv_models_v2.PolicyProfile.profile_id == profile_id).delete()
-            session.query(n1kv_models_v2.ProfileBinding).\
-                filter(n1kv_models_v2.ProfileBinding.profile_id == profile_id).delete()
 
     def _remove_all_fake_policy_profiles(self):
         """
         Remove all policy profiles associated with fake tenant id
+
+        This will find all Profile ID where tenant is not set yet - set A
+        and profiles where tenant was already set - set B
+        and remove what is in both and no tenant id set
+
         :return:
         """
         session = db.get_session()
         with session.begin(subtransactions=True):
+            a_set_q = session.query(n1kv_models_v2.ProfileBinding).\
+                filter_by(tenant_id=n1kv_models_v2.TENANT_ID_NOT_SET, profile_type='policy').all()
+            a_set = {i.profile_id for i in a_set_q}
+            b_set_q = session.query(n1kv_models_v2.ProfileBinding). \
+                filter(and_(n1kv_models_v2.ProfileBinding.tenant_id != n1kv_models_v2.TENANT_ID_NOT_SET,
+                            n1kv_models_v2.ProfileBinding.profile_type == 'policy')).all()
+            b_set = {i.profile_id for i in b_set_q}
             session.query(n1kv_models_v2.ProfileBinding).\
-                filter_by(tenant_id=n1kv_models_v2.TENANT_ID_NOT_SET, profile_type='policy').delete()
+                filter(and_(n1kv_models_v2.ProfileBinding.in_(a_set & b_set),
+                            n1kv_models_v2.ProfileBinding.tenant_id == n1kv_models_v2.TENANT_ID_NOT_SET)).delete()
 
     def _replace_fake_tanant_id_with_real(self, context):
         """
