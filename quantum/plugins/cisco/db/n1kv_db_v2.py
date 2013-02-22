@@ -477,6 +477,11 @@ def get_network_profile(id, fields=None):
         raise c_exc.NetworkProfileIdNotFound(profile_id=id)
 
 
+def _get_network_profiles():
+    session = db.get_session()
+    return session.query(n1kv_models_v2.NetworkProfile).all()
+
+
 def create_policy_profile(profile):
     """
      Create Policy Profile
@@ -766,9 +771,13 @@ class NetworkProfile_db_mixin(object):
             self._validate_vxlan(p)
 
     def _validate_segment_range_uniqueness(self, context, p):
-        """Validate that segment range doesn't overlap."""
-
-        profiles = self.get_network_profiles(context)
+        """
+        Validate that segment range doesn't overlap.
+        :param context:
+        :param p:
+        :return:
+        """
+        profiles = _get_network_profiles() #self.get_network_profiles(context)
         for prfl in profiles:
             if p['name'] == prfl['name']:
                 msg = _("NetworkProfile name %s already exists" % p['name'])
