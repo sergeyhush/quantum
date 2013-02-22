@@ -753,15 +753,16 @@ class NetworkProfile_db_mixin(object):
                     " for network profile")
             LOG.exception(msg)
             raise q_exc.InvalidInput(error_message=msg)
-        if p['segment_type'].lower() not in ['vlan', 'vxlan']:
+        _segment_type = p['segment_type'].lower()
+        if _segment_type not in ['vlan', 'vxlan']:
             msg = _("segment_type should either be vlan or vxlan")
             LOG.exception(msg)
             raise q_exc.InvalidInput(error_message=msg)
         self._validate_segment_range(p)
-        if p['segment_type'].lower() == 'vlan':
+        if _segment_type == n1kv_models_v2.SEGMENT_TYPE_VLAN:
             self._validate_vlan(p)
             p['multicast_ip_range'] = '0.0.0.0'
-        else:
+        elif _segment_type == n1kv_models_v2.SEGMENT_TYPE_VXLAN:
             self._validate_vxlan(p)
 
     def _validate_segment_range_uniqueness(self, context, p):
