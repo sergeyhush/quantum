@@ -32,11 +32,9 @@ from quantum.db import models_v2
 import quantum.db.api as db
 from quantum.plugins.cisco.common import cisco_constants as const
 from quantum.plugins.cisco.db import n1kv_models_v2
-from quantum.plugins.cisco.db import n1kv_profile_db
 from quantum.plugins.cisco.common import cisco_exceptions as c_exc
 from quantum.plugins.cisco.n1kv import n1kv_configuration as conf
 from quantum.api.v2.attributes import _validate_ip_address
-from quantum.extensions import profile
 
 LOG = logging.getLogger(__name__)
 
