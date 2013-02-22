@@ -823,6 +823,7 @@ class PolicyProfile_db_mixin(object):
 
     def _delete_policy_profile(self, profile_id):
         """
+        Delete policy profile and associated binding
 
         :param profile_id:
         :return:
@@ -831,6 +832,8 @@ class PolicyProfile_db_mixin(object):
         with session.begin(subtransactions=True):
             session.query(n1kv_models_v2.PolicyProfile).\
                 filter(n1kv_models_v2.PolicyProfile.profile_id == profile_id).delete()
+            session.query(n1kv_models_v2.ProfileBinding).\
+                filter(n1kv_models_v2.ProfileBinding.profile_id == profile_id).delete()
 
     def _remove_all_fake_policy_profiles(self):
         """
