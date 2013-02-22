@@ -856,7 +856,8 @@ class PolicyProfile_db_mixin(object):
             b_set = {i.profile_id for i in b_set_q}
             session.query(n1kv_models_v2.ProfileBinding).\
                 filter(and_(n1kv_models_v2.ProfileBinding.profile_id.in_(a_set & b_set),
-                            n1kv_models_v2.ProfileBinding.tenant_id == n1kv_models_v2.TENANT_ID_NOT_SET)).delete()
+                            n1kv_models_v2.ProfileBinding.tenant_id == n1kv_models_v2.TENANT_ID_NOT_SET)).\
+                delete(synchronize_session='fetch')
 
     def _replace_fake_tanant_id_with_real(self, context):
         """
