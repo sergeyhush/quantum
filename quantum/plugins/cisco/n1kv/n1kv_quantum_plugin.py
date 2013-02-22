@@ -189,7 +189,7 @@ class AgentNotifierApi(proxy.RpcProxy):
 
 class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
                          l3_db.L3_NAT_db_mixin,
-                         n1kv_profile_db.N1kvProfile_db_mixin,
+                         # n1kv_profile_db.N1kvProfile_db_mixin,
                          n1kv_db_v2.NetworkProfile_db_mixin,
                          n1kv_db_v2.PolicyProfile_db_mixin):
     """
