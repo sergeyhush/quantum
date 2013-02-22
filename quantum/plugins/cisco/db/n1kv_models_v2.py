@@ -27,8 +27,9 @@ from quantum.plugins.cisco.common import cisco_exceptions
 from sqlalchemy.orm import exc
 
 LOG = logging.getLogger(__name__)
-
-SEGMENT_TYPE = Enum('vlan', 'vxlan')
+SEGMENT_TYPE_VLAN = 'vlan'
+SEGMENT_TYPE_VXLAN = 'vxlan'
+SEGMENT_TYPE = Enum(SEGMENT_TYPE_VLAN, SEGMENT_TYPE_VXLAN)
 PROFILE_TYPE = Enum('network', 'policy')
 # use this to indicate that tenant_id was not yet set
 TENANT_ID_NOT_SET = '01020304-0506-0708-0901-020304050607'
