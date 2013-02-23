@@ -461,6 +461,8 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
             msg = _("n1kv:profile_id does not exist")
             raise q_exc.InvalidInput(error_message=msg)
 
+        return (profile_id)
+
     #TBD: remove added for compilation
     def _send_register_request(self):
         LOG.debug('_send_register_request')
