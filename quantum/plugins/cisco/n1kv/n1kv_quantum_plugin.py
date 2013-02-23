@@ -437,8 +437,8 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
                 port['id'])
         port[n1kv_profile.PROFILE_ID] = binding.profile_id
 
-    def _process_profile(self, context, attrs):
-        """ Validate profile exists """
+    def _process_network_profile(self, context, attrs):
+        """ Validate network profile exists """
         profile_id = attrs.get(n1kv_profile.PROFILE_ID)
         profile_id_set = attributes.is_attr_set(profile_id)
         if not profile_id_set:
@@ -449,6 +449,17 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
             raise q_exc.InvalidInput(error_message=msg)
 
         return (profile_id)
+
+    def _process_policy_profile(self, context, attrs):
+        """ Validates whether policy profile exists """
+        profile_id = attrs.get(n1kv_profile.PROFILE_ID)
+        profile_id_set = attributes.is_attr_set(profile_id)
+        if not profile_id_set:
+            msg = _("n1kv:profile_id does not exist")
+            raise q_exc.InvalidInput(error_message=msg)
+        if not self.policy_profile_exists(context, profile_id):
+            msg = _("n1kv:profile_id does not exist")
+            raise q_exc.InvalidInput(error_message=msg)
 
     #TBD: remove added for compilation
     def _send_register_request(self):
@@ -548,7 +559,7 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
          segmentation_id) = self._process_provider_create(context,
             network['network'])
 
-        profile_id = self._process_profile(context, network['network'])
+        profile_id = self._process_network_profile(context, network['network'])
 
         LOG.debug('create network: profile_id=%s', profile_id)
         session = context.session
@@ -649,7 +660,7 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
 
         """
         if n1kv_profile.PROFILE_ID in port['port']:
-            profile_id = self._process_profile(context, port['port'])
+            profile_id = self._process_policy_profile(context, port['port'])
             LOG.debug('create port: profile_id=%s', profile_id)
             session = context.session
             with session.begin(subtransactions=True):

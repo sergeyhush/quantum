@@ -839,6 +839,13 @@ class PolicyProfile_db_mixin(object):
                                     self._make_policy_profile_dict,
                                     filters=filters, fields=fields)
 
+    def policy_profile_exists(self, context, id):
+        try:
+            profile = get_policy_profile(id)
+            return profile and True or False
+        except exc.NoResultFound:
+            raise c_exc.PolicyProfileIdNotFound(profile_id=id)
+
     def add_policy_profile_tenant(self, profile_id, tenant_id):
         """
         Add tenant to a policy profile
