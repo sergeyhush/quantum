@@ -519,8 +519,9 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
             n1kv_db_v2.add_vm_network(vm_network_name,
                                      port[n1kv_profile.PROFILE_ID],
                                      port['network_id'])
+            policy_profile = n1kv_db_v2.get_policy_profile(port[n1kv_profile.PROFILE_ID])
             n1kvclient = n1kv_client.Client()
-            n1kvclient.create_n1kv_port(port, vm_network_name)
+            n1kvclient.create_n1kv_port(port, vm_network_name, policy_profile)
 
     def _send_update_port_request(self, port, vm_network_name):
         """ Send Update Port request to VSM """
@@ -671,16 +672,14 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
                 device_owner = port['port']['device_owner']
                 # Create this port
                 cport = self.create_port(context, port)
-                LOG.debug("Abs PORT UUID: %s\n", port)
+                LOG.debug("PORT UUID: %s\n", port)
                 pt = self.get_port(context, cport['id'])
                 pt['device_owner'] = device_owner
                 if 'fixed_ip' in port:
-                    fixed_ip = cport['fixed_ip']
-                    pt['fixed_ips'] = fixed_ip
+                    pt['fixed_ips'] = cport['fixed_ip']
                 pt['device_id'] = instance_id
                 port['port'] = pt
                 pt = self.update_port(context, pt['id'], port)
-                LOG.debug("Abs PORT: %s\n", pt)
                 return pt
             else:
                 tenant_id = port['port']['tenant_id']
@@ -688,16 +687,14 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
                 device_owner = port['port']['device_owner']
 
                 port_id = self._get_instance_port_id(tenant_id, instance_id)
-                LOG.debug("Abs PORT UUID: %s\n", port_id)
+                LOG.debug("PORT UUID: %s\n", port_id)
                 pt = self.get_port(context, port_id['port_id'])
                 pt['device_owner'] = device_owner
                 if 'fixed_ip' in port:
-                    fixed_ip = port['port']['fixed_ip']
-                    pt['fixed_ips'] = fixed_ip
+                    pt['fixed_ips'] = port['port']['fixed_ip']
                 pt['device_id'] = instance_id
                 port['port'] = pt
                 pt = self.update_port(context, pt['id'], port)
-                LOG.debug("Abs PORT: %s\n", pt)
                 return pt
 
     def _get_instance_port_id(self, tenant_id, instance_id):

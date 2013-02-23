@@ -24,7 +24,6 @@ from quantum.plugins.cisco.n1kv.common.serializer import Serializer
 from quantum.plugins.cisco.db import network_db_v2 as cdb
 from quantum.plugins.cisco.common import cisco_constants as const
 from quantum.plugins.cisco.common import cisco_credentials_v2 as cred
-from quantum.plugins.cisco.db import n1kv_profile_db
 from quantum.extensions import providernet as provider
 from quantum.extensions import n1kv_profile
 
@@ -33,7 +32,7 @@ LOG = logging.getLogger(__name__)
 TENANT = const.NETWORK_ADMIN
 
 
-class Client(n1kv_profile_db.N1kvProfile_db_mixin):
+class Client(object):
     """
     Client for the Cisco Nexus1000V Quantum Plugin
 
@@ -130,7 +129,6 @@ class Client(n1kv_profile_db.N1kvProfile_db_mixin):
         """
         Creates a Nework Segment on the VSM
         """
-        # profile = self.get_profile_by_id(network[n1kv_profile.PROFILE_ID])
         LOG.debug("seg id %s\n", profile['name'])
         body = {'name': network['name'],
                 'id': network['id'],
@@ -198,16 +196,15 @@ class Client(n1kv_profile_db.N1kvProfile_db_mixin):
                 'gateway': subnet['gateway_ip'], }
         return self._post(self.ip_pools_path, body=body, params=_params)
 
-    def create_n1kv_port(self, port, name, **_params):
+    def create_n1kv_port(self, port, name, policy_profile, **_params):
         """
         Creates a Port on the VSM
         """
-        profile = self.get_profile_by_id(port[n1kv_profile.PROFILE_ID])
         body = {'name': name,
                 'id': port['id'],
                 'tenantId': port['tenant_id'],
                 'vmNetworkDefinition': port['network_id'],
-                'portProfile': profile['name'],
+                'portProfile': policy_profile['name'],
                 'portProfileId': port[n1kv_profile.PROFILE_ID],
                 'portId': port['id'],
                 'macAddress': port['mac_address']}
