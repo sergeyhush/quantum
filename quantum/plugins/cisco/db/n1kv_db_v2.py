@@ -622,6 +622,17 @@ class NetworkProfile_db_mixin(object):
     Network Profile Mixin
     """
 
+    def _get_network_collection_for_tenant(self, model, tenant_id):
+        session = db.get_session()
+        profile_ids = (session.query(n1kv_models_v2.ProfileBinding.profile_id).\
+                           filter_by(tenant_id=tenant_id).\
+                           filter_by(profile_type='network').all())
+        profiles = []
+        for pid in profile_ids:
+            profiles.append(session.query(model).
+                           filter_by(id=pid[0]).one())
+        return [self._make_network_profile_dict(p) for p in profiles]
+
     def _make_network_profile_dict(self, profile, fields=None):
         res = {'id': profile['id'],
                'name': profile['name'],
@@ -666,9 +677,14 @@ class NetworkProfile_db_mixin(object):
         return self._make_network_profile_dict(profile, fields)
 
     def get_network_profiles(self, context, filters=None, fields=None):
-        return self._get_collection(context, n1kv_models_v2.NetworkProfile,
+        """if context.is_admin:
+            p = self._get_collection(context, n1kv_models_v2.NetworkProfile,
                                     self._make_network_profile_dict,
                                     filters=filters, fields=fields)
+            return p
+        else:"""
+        p = self._get_network_collection_for_tenant(n1kv_models_v2.NetworkProfile, context.tenant_id)
+        return p
 
     def add_network_profile_tenant(self, profile_id, tenant_id):
         """
@@ -812,6 +828,18 @@ class PolicyProfile_db_mixin(object):
     Policy Profile Mixin
     """
 
+
+    def _get_policy_collection_for_tenant(self, model, tenant_id):
+        session = db.get_session()
+        profile_ids = (session.query(n1kv_models_v2.ProfileBinding.profile_id).\
+                           filter_by(tenant_id=tenant_id).\
+                           filter_by(profile_type='policy').all())
+        profiles = []
+        for pid in profile_ids:
+            profiles.append(session.query(model).
+                           filter_by(id=pid[0]).one())
+        return [self._make_policy_profile_dict(p) for p in profiles]
+
     def _make_policy_profile_dict(self, profile, fields=None):
         res = {'id': profile['id'], 'name': profile['name']}
         return self._fields(res, fields)
@@ -835,9 +863,13 @@ class PolicyProfile_db_mixin(object):
         return self._make_policy_profile_dict(profile, fields)
 
     def get_policy_profiles(self, context, filters=None, fields=None):
-        return self._get_collection(context, n1kv_models_v2.PolicyProfile,
+        """if  context.is_admin:
+            return self._get_collection(context, n1kv_models_v2.PolicyProfile,
                                     self._make_policy_profile_dict,
                                     filters=filters, fields=fields)
+        else:"""
+        return self._get_policy_collection_for_tenant(n1kv_models_v2.PolicyProfile, context.tenant_id)
+
 
     def policy_profile_exists(self, context, id):
         try:

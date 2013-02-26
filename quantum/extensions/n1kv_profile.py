@@ -42,7 +42,7 @@ EXTENDED_ATTRIBUTES_2_0 = {
 }
 
 
-class N1kv_profile(object):
+class N1kvProfile(object):
     """Extension class supporting N1kv profiles.
 
     This class is used by quantum's extension framework to make

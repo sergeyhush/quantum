@@ -677,6 +677,7 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
         elif 'device_id' in port['port'].keys():
             if port['port']['device_id'].startswith('dhcp'):
                 # Grab profile id from the network
+                LOG.debug("create dhcp port")
                 network_id = port['port']['network_id']
                 network = self.get_network(context, network_id)
                 port['port']['n1kv:profile_id'] = network['n1kv:profile_id']
@@ -685,7 +686,7 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
                 device_owner = port['port']['device_owner']
                 # Create this port
                 cport = self.create_port(context, port)
-                LOG.debug("PORT UUID: %s\n", port)
+                LOG.debug("DHCP PORT UUID: %s\n", port)
                 pt = self.get_port(context, cport['id'])
                 pt['device_owner'] = device_owner
                 if 'fixed_ip' in port:
