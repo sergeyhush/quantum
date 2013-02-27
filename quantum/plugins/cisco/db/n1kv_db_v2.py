@@ -657,10 +657,10 @@ class NetworkProfile_db_mixin(object):
 
     def update_network_profile(self, context, id, network_profile):
         p = network_profile['network_profile']
-        if context.is_admin and p.add_tenant:
+        if context.is_admin and 'add_tenant' in p:
             self.add_network_profile_tenant(p.id, p.add_tenant)
             return self._make_network_profile_dict(get_network_profile(id))
-        elif context.is_admin and p.remove_tenant:
+        elif context.is_admin and 'remove_tenant' in p:
             delete_profile_binding(p.add_tenant, p.id)
             return self._make_network_profile_dict(get_network_profile(id))
         else:
