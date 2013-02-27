@@ -662,7 +662,11 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
 
         """
         if n1kv_profile.PROFILE_ID in port['port']:
-            profile_id = self._process_policy_profile(context, port['port'])
+            #If it is a dhcp port, profile id is populated with network profile id.
+            if port['port']['device_id'].startswith('dhcp'):
+                profile_id = self._process_network_profile(context, port['port'])
+            else:
+                profile_id = self._process_policy_profile(context, port['port'])
             LOG.debug('create port: profile_id=%s', profile_id)
             session = context.session
             with session.begin(subtransactions=True):
