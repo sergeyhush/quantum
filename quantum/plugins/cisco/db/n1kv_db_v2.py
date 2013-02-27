@@ -870,6 +870,16 @@ class PolicyProfile_db_mixin(object):
         else:"""
         return self._get_policy_collection_for_tenant(n1kv_models_v2.PolicyProfile, context.tenant_id)
 
+    def update_policy_profile(self, context, id, policy_profile):
+        p = policy_profile['policy_profile']
+        if context.is_admin and 'add_tenant' in p:
+            self.add_policy_profile_tenant(p.id, p['add_tenant'])
+            return self._make_policy_profile_dict(get_policy_profile(id))
+        elif context.is_admin and 'remove_tenant' in p:
+            delete_profile_binding(p['remove_tenant'], p.id)
+            return self._make_policy_profile_dict(get_policy_profile(id))
+        else:
+            return self._make_policy_profile_dict(update_policy_profile(id, p))
 
     def policy_profile_exists(self, context, id):
         try:
