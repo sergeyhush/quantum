@@ -873,7 +873,7 @@ class PolicyProfile_db_mixin(object):
     def update_policy_profile(self, context, id, policy_profile):
         p = policy_profile['policy_profile']
         if context.is_admin and 'add_tenant' in p:
-            self.add_policy_profile_tenant(p['id'], p['add_tenant'])
+            self.add_policy_profile_tenant(id, p['add_tenant'])
             return self._make_policy_profile_dict(get_policy_profile(id))
         elif context.is_admin and 'remove_tenant' in p:
             delete_profile_binding(p['remove_tenant'], id)
