@@ -194,3 +194,12 @@ class VxlanIdInUse(exceptions.QuantumException):
     """
     message = _("Unable to create the network. "
                 "The VXLAN ID %(vxlan_id)s is in use.")
+
+class VSMConnectionFailed(exceptions.QuantumException):
+        """Connection to VSM failed"""
+    message = _("Connection to VSM failed: %(reason)s")
+
+class VSMError(exceptions.QuantumException):
+        """Internal VSM error"""
+    message = _("Internal Server Error: %(reason)s")
+
