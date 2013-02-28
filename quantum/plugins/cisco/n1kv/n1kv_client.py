@@ -259,7 +259,7 @@ class Client(object):
         status_code = self._get_status_code(resp)
         LOG.debug("status_code %s\n", status_code)
         if status_code == httplib.OK and 'application/xml' in _content_type:
-            self._deserialize(replybody, status_code)
+            return self._deserialize(replybody, status_code)
         elif status_code == httplib.OK and 'text/plain' in _content_type:
             LOG.debug("VSM: %s", replybody)
         elif status_code in (httplib.INTERNAL_SERVER_ERROR,
