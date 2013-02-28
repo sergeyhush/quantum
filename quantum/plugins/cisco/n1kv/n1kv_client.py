@@ -20,10 +20,11 @@ import httplib
 import logging
 import base64
 
-from quantum.plugins.cisco.n1kv.common.serializer import Serializer
+from quantum.wsgi import Serializer
 from quantum.plugins.cisco.db import network_db_v2 as cdb
 from quantum.plugins.cisco.common import cisco_constants as const
 from quantum.plugins.cisco.common import cisco_credentials_v2 as cred
+from quantum.plugins.cisco.common import cisco_exceptions as exc
 from quantum.extensions import providernet as provider
 from quantum.extensions import n1kv_profile
 
@@ -98,7 +99,6 @@ class Client(object):
 
     # Define paths here
     profiles_path = "/virtual-port-profile"
-    profile_path = "/virtual-port-profile/%s"
     network_segments_path = "/vm-network-definition"
     network_segment_path = "/vm-network-definition/%s"
     network_segment_pools_path = "/fabric-network-definition"
@@ -234,6 +234,12 @@ class Client(object):
         self.action_prefix = '/api/hyper-v'
         self.hosts = self._get_vsm_hosts(TENANT)
 
+    def _handle_fault_response(self, status_code, replybody):
+        if status_code == httplib.INTERNAL_SERVER_ERROR:
+            raise exc.VSMError(reason=_(replybody))
+        elif status_code == httplib.SERVICE_UNAVAILABLE:
+            raise exc.VSMConnectionFailed
+
     def _do_request(self, method, action, body=None, headers=None, params=None):
         """
         Perform the HTTP request
@@ -242,21 +248,24 @@ class Client(object):
         if headers is None  and  self.hosts:
             headers = self._get_header(self.hosts[0])
         if body:
-            body = self.serialize(body)
-            # body = json.dumps(body)
+            body = self._serialize(body)
             body = body + '  '
             LOG.debug("req: %s", body)
         conn = httplib.HTTPConnection(self.hosts[0])
         conn.request(method, action, body, headers)
         resp = conn.getresponse()
+        _content_type = resp.getheader('content-type')
         replybody = resp.read()
         status_code = self._get_status_code(resp)
         LOG.debug("status_code %s\n", status_code)
-        if status_code in (httplib.OK, httplib.ACCEPTED, httplib.NO_CONTENT):
-            ret = self.deserialize(replybody, status_code)
-            return ret
-        elif status_code == httplib.CREATED:
-            LOG.debug("Created Nework Segment/Network Segment Pool: %s\n", replybody)
+        if status_code == httplib.OK and 'application/xml' in _content_type:
+            self._deserialize(replybody, status_code)
+        elif status_code == httplib.OK and 'text/plain' in _content_type:
+            LOG.debug("VSM: %s", replybody)
+        elif status_code in (httplib.INTERNAL_SERVER_ERROR,
+                             httplib.NOT_FOUND,
+                             httplib.SERVICE_UNAVAILABLE):
+            self._handle_fault_response(status_code, replybody)
 
     def _get_status_code(self, response):
         """
@@ -268,7 +277,7 @@ class Client(object):
         else:
             return response.status
 
-    def serialize(self, data):
+    def _serialize(self, data):
         """
         Serializes a dictionary with a single key (which can contain any
         structure) into either xml or json
@@ -276,25 +285,25 @@ class Client(object):
         if data is None:
             return None
         elif type(data) is dict:
-            return Serializer().serialize(data, self._content_type())
+            return Serializer().serialize(data, self._set_content_type())
         else:
             raise Exception("unable to serialize object of type = '%s'" %
                             type(data))
 
-    def deserialize(self, data, status_code):
+    def _deserialize(self, data, status_code):
         """
-        Deserializes an xml or json string into a dictionary
+        Deserializes an xml string into a dictionary
         """
         if status_code == 204:
             return data
         try:
             return Serializer(self._serialization_metadata).deserialize(
-                              data, self._content_type('xml'))
+                              data, self._set_content_type('xml'))
         except Exception:
             if status_code == 200:
                 LOG.debug("Created Nework Segment/Network Segment Pool\n")
 
-    def _content_type(self, format=None):
+    def _set_content_type(self, format=None):
         """
         Returns the mime-type for either 'xml' or 'json'.  Defaults to the
         currently set format
