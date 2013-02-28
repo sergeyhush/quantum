@@ -299,9 +299,6 @@ class Client(object):
         try:
             return Serializer(self._serialization_metadata).deserialize(
                               data, self._set_content_type('xml'))
-        except Exception:
-            if status_code == 200:
-                LOG.debug("Created Nework Segment/Network Segment Pool\n")
 
     def _set_content_type(self, format=None):
         """
