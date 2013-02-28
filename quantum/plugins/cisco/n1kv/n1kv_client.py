@@ -296,9 +296,8 @@ class Client(object):
         """
         if status_code == 204:
             return data
-        try:
-            return Serializer(self._serialization_metadata).deserialize(
-                              data, self._set_content_type('xml'))
+        return Serializer(self._serialization_metadata).deserialize(
+                          data, self._set_content_type('xml'))
 
     def _set_content_type(self, format=None):
         """
