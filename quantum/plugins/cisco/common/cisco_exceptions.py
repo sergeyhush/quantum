@@ -201,5 +201,5 @@ class VSMConnectionFailed(exceptions.QuantumException):
 
 class VSMError(exceptions.QuantumException):
     """Internal VSM error"""
-    message = _("Internal Server Error: %(reason)s")
+    message = _("Internal VSM Error: %(reason)s")
 
