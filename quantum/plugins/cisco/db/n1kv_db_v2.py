@@ -400,12 +400,28 @@ def get_vm_network(profile_id, network_id):
         return None
 
 
-def add_vm_network(name, profile_id, network_id):
+def add_vm_network(name, profile_id, network_id, port_count):
     session = db.get_session()
     with session.begin(subtransactions=True):
-        vm_network = n1kv_models_v2.N1kVmNetwork(name, profile_id, network_id)
+        vm_network = n1kv_models_v2.N1kVmNetwork(name,
+                                                 profile_id,
+                                                 network_id,
+                                                 port_count)
         session.add(vm_network)
 
+def update_vm_network(name, port_count):
+    """Updates a vm network with new port count"""
+    session = db.get_session()
+    try:
+        vm_network = (session.query(n1kv_models_v2.N1kVmNetwork).
+                     filter_by(name=name).one())
+        if port_count:
+            vm_network['port_count'] = port_count
+        session.merge(vm_network)
+        session.flush()
+        return vm_network
+    except exc.NoResultFound:
+        raise c_exc.VMNetworkNotFound(name=name)
 
 def create_network_profile(profile):
     """

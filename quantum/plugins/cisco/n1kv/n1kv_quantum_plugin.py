@@ -522,13 +522,15 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
     def _send_update_subnet_request(self, subnet):
         """ Send Create Subnet request to VSM """
         LOG.debug('_send_update_subnet_request: %s', subnet['id'])
+    # TBD End.
 
-    def _send_delete_subnet_request(self, id):
+    def _send_delete_subnet_request(self, subnet):
         """ Send Delete Subnet request to VSM """
         LOG.debug('_send_delete_subnet_request: %s', id)
-    # TBD End :
+        n1kvclient = n1kv_client.Client()
+        n1kvclient.delete_ip_pool(subnet['name'])
 
-    def _send_create_port_request(self, port):
+    def _send_create_port_request(self, context, port):
         """ Send Create Port request to VSM """
         LOG.debug('_send_create_port_request: %s', port)
         vm_network = n1kv_db_v2.get_vm_network(port[n1kv_profile.PROFILE_ID],
@@ -536,13 +538,20 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
         if vm_network:
             vm_network_name = vm_network['name']
             self._send_update_port_request(port, vm_network_name)
+            vm_network['port_count'] = self._update_port_count(vm_network['port_count'],
+                                                               action='increment')
+            n1kv_db_v2.update_vm_network(vm_network_name, vm_network['port_count'])
         else:
-            current_vm_network_num = VM_NETWORK_NUM.next()
-            vm_network_name = 'vm_network_' + str(current_vm_network_num)
+            policy_profile = n1kv_db_v2.get_policy_profile(port[n1kv_profile.PROFILE_ID])
+            profile_name = policy_profile['name']
+            network = self.get_network(context, port['network_id'])
+            network_name = network['name']
+            vm_network_name = str(profile_name) + '_' + str(network_name)
+            port_count = 1
             n1kv_db_v2.add_vm_network(vm_network_name,
                                      port[n1kv_profile.PROFILE_ID],
-                                     port['network_id'])
-            policy_profile = n1kv_db_v2.get_policy_profile(port[n1kv_profile.PROFILE_ID])
+                                     port['network_id'],
+                                     port_count)
             n1kvclient = n1kv_client.Client()
             n1kvclient.create_n1kv_port(port, vm_network_name, policy_profile)
 
@@ -553,6 +562,16 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
                 'macAddress': port['mac_address']}
         n1kvclient = n1kv_client.Client()
         n1kvclient.update_n1kv_port(vm_network_name, body)
+
+    def _update_port_count(self, port_count, action):
+        """ Increments/Decrements port count by 1 based on action.
+            action: increment or decrement
+        """
+        if action == 'increment':
+            port_count = port_count + 1
+        elif action == 'decrement':
+            port_count = port_count - 1
+        return port_count
 
     def _send_delete_port_request(self, id):
         """ Send Delete Port request to VSM """
@@ -685,7 +704,7 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
                 n1kv_db_v2.add_port_binding(session, pt['id'], profile_id)
                 self._extend_port_dict_profile(context, pt)
 
-            self._send_create_port_request(pt)
+            self._send_create_port_request(context, pt)
             LOG.debug("Created port: %s", pt)
             return pt
         elif 'device_id' in port['port'].keys():
@@ -798,7 +817,8 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
     def delete_subnet(self, context, id):
         """ Delete a Subnet """
         LOG.debug('Delete subnet: %s', id)
-        self._send_delete_subnet_request(id)
+        subnet = self.get_subnet(context, id)
+        self._send_delete_subnet_request(subnet)
         return super(N1kvQuantumPluginV2, self).delete_subnet(context, id)
 
     def get_subnet(self, context, id, fields=None):

@@ -196,16 +196,19 @@ class N1kVmNetwork(model_base.BASEV2):
     name = Column(String(255), primary_key=True)
     profile_id = Column(String(36))
     network_id = Column(String(36))
+    port_count = Column(Integer)
 
-    def __init__(self, name, profile_id, network_id):
+    def __init__(self, name, profile_id, network_id, port_count):
         self.name = name
         self.profile_id = profile_id
         self.network_id = network_id
+        self.port_count = port_count
 
     def __repr__(self):
-        return "<VmNetwork(%s,%s,%s)>" % (self.name,
+        return "<VmNetwork(%s,%s,%s,%s)>" % (self.name,
                                           self.profile_id,
-                                          self.network_id)
+                                          self.network_id,
+                                          self.port_count)
 
 
 class NetworkProfile(model_base.BASEV2, HasId):

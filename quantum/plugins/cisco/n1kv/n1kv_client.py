@@ -196,6 +196,12 @@ class Client(object):
                 'gateway': subnet['gateway_ip'], }
         return self._post(self.ip_pools_path, body=body, params=_params)
 
+    def delete_ip_pool(self, subnet_name):
+        """
+        Deletes an ip-pool on the VSM
+        """
+        return self._delete(self.ip_pool_path % (subnet_name))
+
     def create_n1kv_port(self, port, name, policy_profile, **_params):
         """
         Creates a Port on the VSM

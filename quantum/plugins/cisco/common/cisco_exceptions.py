@@ -184,6 +184,10 @@ class NetworkProfileIdNotFound(exceptions.QuantumException):
     message = _("Network Profile %(profile_id)s could not be found ")
 
 
+class VMNetworkNotFound(exceptions.QuantumException):
+    """VM Network cannot be found"""
+    message = _("VM Network %(name)s could not be found ")
+
 class VxlanIdInUse(exceptions.QuantumException):
     """
     VXLAN Id is in use
