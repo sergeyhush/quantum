@@ -196,10 +196,10 @@ class VxlanIdInUse(exceptions.QuantumException):
                 "The VXLAN ID %(vxlan_id)s is in use.")
 
 class VSMConnectionFailed(exceptions.QuantumException):
-        """Connection to VSM failed"""
+    """Connection to VSM failed"""
     message = _("Connection to VSM failed: %(reason)s")
 
 class VSMError(exceptions.QuantumException):
-        """Internal VSM error"""
+    """Internal VSM error"""
     message = _("Internal Server Error: %(reason)s")
 
