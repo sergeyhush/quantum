@@ -645,8 +645,11 @@ class NetworkProfile_db_mixin(object):
                            filter_by(profile_type='network').all())
         profiles = []
         for pid in profile_ids:
-            profiles.append(session.query(model).
+            try:
+                profiles.append(session.query(model).
                            filter_by(id=pid[0]).one())
+            except exc.NoResultFound:
+                return None
         return [self._make_network_profile_dict(p) for p in profiles]
 
     def _make_network_profile_dict(self, profile, fields=None):
@@ -852,8 +855,11 @@ class PolicyProfile_db_mixin(object):
                            filter_by(profile_type='policy').all())
         profiles = []
         for pid in profile_ids:
-            profiles.append(session.query(model).
+            try:
+                profiles.append(session.query(model).
                            filter_by(id=pid[0]).one())
+            except exc.NoResultFound:
+                return None
         return [self._make_policy_profile_dict(p) for p in profiles]
 
     def _make_policy_profile_dict(self, profile, fields=None):
