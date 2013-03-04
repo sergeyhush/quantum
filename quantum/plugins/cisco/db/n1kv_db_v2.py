@@ -679,10 +679,10 @@ class NetworkProfile_db_mixin(object):
     def update_network_profile(self, context, id, network_profile):
         p = network_profile['network_profile']
         if context.is_admin and 'add_tenant' in p:
-            self.add_network_profile_tenant(p.id, p.add_tenant)
+            self.add_network_profile_tenant(id, p['add_tenant'])
             return self._make_network_profile_dict(get_network_profile(id))
         elif context.is_admin and 'remove_tenant' in p:
-            delete_profile_binding(p.add_tenant, p.id)
+            delete_profile_binding(p['remove_tenant'], id)
             return self._make_network_profile_dict(get_network_profile(id))
         else:
             return self._make_network_profile_dict(update_network_profile(id, p))
@@ -698,14 +698,12 @@ class NetworkProfile_db_mixin(object):
         return self._make_network_profile_dict(profile, fields)
 
     def get_network_profiles(self, context, filters=None, fields=None):
-        """if context.is_admin:
-            p = self._get_collection(context, n1kv_models_v2.NetworkProfile,
+        if context.is_admin:
+            return self._get_collection(context, n1kv_models_v2.NetworkProfile,
                                     self._make_network_profile_dict,
                                     filters=filters, fields=fields)
-            return p
-        else:"""
-        p = self._get_network_collection_for_tenant(n1kv_models_v2.NetworkProfile, context.tenant_id)
-        return p
+        else:
+            return self._get_network_collection_for_tenant(n1kv_models_v2.NetworkProfile, context.tenant_id)
 
     def add_network_profile_tenant(self, profile_id, tenant_id):
         """
@@ -887,12 +885,12 @@ class PolicyProfile_db_mixin(object):
         return self._make_policy_profile_dict(profile, fields)
 
     def get_policy_profiles(self, context, filters=None, fields=None):
-        """if  context.is_admin:
+        if  context.is_admin:
             return self._get_collection(context, n1kv_models_v2.PolicyProfile,
                                     self._make_policy_profile_dict,
                                     filters=filters, fields=fields)
-        else:"""
-        return self._get_policy_collection_for_tenant(n1kv_models_v2.PolicyProfile, context.tenant_id)
+        else:
+            return self._get_policy_collection_for_tenant(n1kv_models_v2.PolicyProfile, context.tenant_id)
 
     def update_policy_profile(self, context, id, policy_profile):
         p = policy_profile['policy_profile']
