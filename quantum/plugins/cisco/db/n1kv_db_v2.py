@@ -456,6 +456,7 @@ def delete_network_profile(id):
     with session.begin(subtransactions=True):
         session.delete(profile)
         session.query(n1kv_models_v2.ProfileBinding).filter(n1kv_models_v2.ProfileBinding.profile_id==id).delete()
+    return profile
 
 
 def update_network_profile(id, profile):
@@ -672,7 +673,8 @@ class NetworkProfile_db_mixin(object):
         return self._make_network_profile_dict(net_profile)
 
     def delete_network_profile(self, context, id):
-        delete_network_profile(id)
+        _profile = delete_network_profile(id)
+        return self._make_network_profile_dict(_profile)
 
     def update_network_profile(self, context, id, network_profile):
         p = network_profile['network_profile']
