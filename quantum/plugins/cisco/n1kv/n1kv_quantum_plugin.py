@@ -478,6 +478,16 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
         n1kvclient = n1kv_client.Client()
         n1kvclient.create_network_segment_pool(profile)
 
+    def _send_delete_network_profile_request(self, profile):
+        """
+        Send Delete network profile request to VSM.
+        :param profile:
+        :return:
+        """
+        LOG.debug('_send_delete_network_profile_request: %s', profile['name'])
+        n1kvclient = n1kv_client.Client()
+        n1kvclient.delete_network_segment_pool(profile['name'])
+
     def _send_create_network_request(self, context, network):
         """
         Send Create network request to VSM.
@@ -840,3 +850,7 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
         _network_profile = super(N1kvQuantumPluginV2, self).create_network_profile(context, network_profile)
         self._send_create_network_profile_request(context, _network_profile)
         return _network_profile
+
+    def delete_network_profile(self, context, id):
+        _network_profile = super(N1kvQuantumPluginV2, self).delete_network_profile(context, id)
+        self._send_delete_network_profile_request(_network_profile)
