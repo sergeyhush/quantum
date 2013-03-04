@@ -258,9 +258,10 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
         client = n1kv_client.Client()
         policy_profiles = client.list_profiles()
         for profile in policy_profiles[const.SET]:
-            profile_id = profile[const.PROPERTIES][const.ID]
-            profile_name = profile[const.PROPERTIES][const.NAME]
-            self._add_policy_profile(profile_name, profile_id, tenant_id)
+            if const.ID and const.NAME in profile:
+                profile_id = profile[const.PROPERTIES][const.ID]
+                profile_name = profile[const.PROPERTIES][const.NAME]
+                self._add_policy_profile(profile_name, profile_id, tenant_id)
         self._remove_all_fake_policy_profiles()
 
 
