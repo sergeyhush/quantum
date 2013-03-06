@@ -216,6 +216,7 @@ class Client(object):
                 'tenantId': port['tenant_id'],
                 'vmNetworkDefinition': port['network_id'],
                 'portProfile': policy_profile['name'],
+                'portProfileId': policy_profile['id'],
                 }
         return self._post(self.vm_networks_path, body=body, params=_params)
 
