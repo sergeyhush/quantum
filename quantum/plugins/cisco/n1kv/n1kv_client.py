@@ -105,8 +105,10 @@ class Client(object):
     network_segment_pool_path = "/fabric-network-definition/%s"
     ip_pools_path = "/ip-address-pool"
     ip_pool_path = "/ip-address-pool/%s"
-    ports_path = "/port"
-    port_path = "/port/%s"
+    ports_path = "/vm-network/%s/port"
+    port_path = "/vm-network/%s/port/%s"
+    vm_networks_path = "/vm-network"
+    vm_network_path = "/vm-network/%s"
     bridge_domains_path = "/bridge-domain"
     bridge_domain_path = "/bridge-domain/%s"
 
@@ -202,19 +204,28 @@ class Client(object):
         """
         return self._delete(self.ip_pool_path % (subnet_name))
 
-    def create_n1kv_port(self, port, name, policy_profile, **_params):
+    def create_vm_network(self, port, name, policy_profile, **_params):
         """
-        Creates a Port on the VSM
+        Creates a VM Network on the VSM
+        :param port:
+        :param name:
+        :param policy_profile:
+        :return:
         """
         body = {'name': name,
-                'id': port['id'],
                 'tenantId': port['tenant_id'],
                 'vmNetworkDefinition': port['network_id'],
                 'portProfile': policy_profile['name'],
-                'portProfileId': port[n1kv_profile.PROFILE_ID],
-                'portId': port['id'],
+                }
+        return self._post(self.vm_networks_path, body=body, params=_params)
+
+    def create_n1kv_port(self, port, name, **_params):
+        """
+        Creates a Port on the VSM
+        """
+        body = {'id': port['id'],
                 'macAddress': port['mac_address']}
-        return self._post(self.ports_path, body=body, params=_params)
+        return self._post(self.ports_path % (name), body=body, params=_params)
 
     def update_n1kv_port(self, port, body):
         """

@@ -548,7 +548,9 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
                                                 port['network_id'])
         if vm_network:
             vm_network_name = vm_network['name']
-            self._send_update_port_request(port, vm_network_name)
+            #self._send_update_port_request(port, vm_network_name)
+            n1kvclient = n1kv_client.Client()
+            n1kvclient.create_n1kv_port(port, vm_network_name)
             vm_network['port_count'] = self._update_port_count(vm_network['port_count'],
                                                                action='increment')
             n1kv_db_v2.update_vm_network(vm_network_name, vm_network['port_count'])
@@ -564,7 +566,8 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
                                      port['network_id'],
                                      port_count)
             n1kvclient = n1kv_client.Client()
-            n1kvclient.create_n1kv_port(port, vm_network_name, policy_profile)
+            n1kvclient.create_vm_network(port, vm_network_name, policy_profile)
+            n1kvclient.create_n1kv_port(port, vm_network_name)
 
     def _send_update_port_request(self, port, vm_network_name):
         """ Send Update Port request to VSM """
