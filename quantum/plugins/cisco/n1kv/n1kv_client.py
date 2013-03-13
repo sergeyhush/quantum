@@ -111,6 +111,7 @@ class Client(object):
     vm_network_path = "/vm-network/%s"
     bridge_domains_path = "/bridge-domain"
     bridge_domain_path = "/bridge-domain/%s"
+    fabric_networks_path = "/fabric-network"
 
     def list_profiles(self, **_params):
         """
@@ -152,6 +153,11 @@ class Client(object):
         Deletes a Nework Segment on the VSM
         """
         return self._delete(self.network_segment_path % (network_segment))
+
+    def create_fabric_network(self, profile, **_params):
+        LOG.debug("fabric network")
+        body = {'name': profile['name']}
+        return self._post(self.fabric_networks_path, body=body, params=_params)
 
     def create_network_segment_pool(self, profile, **_params):
         """

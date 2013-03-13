@@ -468,6 +468,11 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
     def _send_register_request(self):
         LOG.debug('_send_register_request')
 
+    def _send_create_fabric_network_request(self, profile):
+        LOG.debug('_send_create_fabric_network')
+        n1kvclient = n1kv_client.Client()
+        n1kvclient.create_fabric_network(profile)
+
     def _send_create_network_profile_request(self, context, profile):
         """
         Send Create network profile request to VSM.
@@ -850,8 +855,9 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
         return [self._fields(subnet, fields) for subnet in subnets]
 
     def create_network_profile(self, context, network_profile):
-        self._replace_fake_tanant_id_with_real(context)
+        self._replace_fake_tenant_id_with_real(context)
         _network_profile = super(N1kvQuantumPluginV2, self).create_network_profile(context, network_profile)
+        self._create_fabric_network_request(_network_profile)
         self._send_create_network_profile_request(context, _network_profile)
         return _network_profile
 

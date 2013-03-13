@@ -438,7 +438,8 @@ def create_network_profile(profile):
                                                         segment_range=profile['segment_range'])
         elif profile['segment_type'] == 'vxlan':
             net_profile = n1kv_models_v2.NetworkProfile(name=profile['name'], segment_type=profile['segment_type'],
-                                                        mcast_ip_index=0, mcast_ip_range=profile['multicast_ip_range'])
+                                                        segment_range=profile['segment_range'], mcast_ip_index=0,
+                                                        mcast_ip_range=profile['multicast_ip_range'])
         session.add(net_profile)
         return net_profile
 
@@ -960,7 +961,7 @@ class PolicyProfile_db_mixin(object):
                             n1kv_models_v2.ProfileBinding.tenant_id == n1kv_models_v2.TENANT_ID_NOT_SET)).\
                 delete(synchronize_session='fetch')
 
-    def _replace_fake_tanant_id_with_real(self, context):
+    def _replace_fake_tenant_id_with_real(self, context):
         """
         Replace fake tenant id for all Policy Profile binding with real admin tenant ID
         :param context:
