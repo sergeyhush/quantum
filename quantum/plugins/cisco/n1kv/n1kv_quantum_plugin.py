@@ -857,7 +857,7 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
     def create_network_profile(self, context, network_profile):
         self._replace_fake_tenant_id_with_real(context)
         _network_profile = super(N1kvQuantumPluginV2, self).create_network_profile(context, network_profile)
-        self._create_fabric_network_request(_network_profile)
+        self._send_create_fabric_network_request(_network_profile)
         self._send_create_network_profile_request(context, _network_profile)
         return _network_profile
 
