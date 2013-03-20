@@ -498,6 +498,17 @@ def get_network_profile(id, fields=None):
     except exc.NoResultFound:
         raise c_exc.NetworkProfileIdNotFound(profile_id=id)
 
+def get_network_profile_by_name(name):
+    """
+    Get Network Profile by name.
+    """
+    LOG.debug("get_network_profile_by_name")
+    session = db.get_session()
+    try:
+        profile = session.query(n1kv_models_v2.NetworkProfile).filter_by(name=name).one()
+        return profile
+    except exc.NoResultFound:
+        return None
 
 def _get_network_profiles():
     """
