@@ -51,6 +51,7 @@ from quantum.openstack.common.rpc import dispatcher
 from quantum.openstack.common.rpc import proxy
 
 from quantum.plugins.cisco.common import cisco_constants as const
+from quantum.plugins.cisco.common import cisco_exceptions
 from quantum.plugins.cisco.common import cisco_credentials_v2 as cred
 from quantum.plugins.cisco.db import n1kv_db_v2
 from quantum.plugins.cisco.db import n1kv_profile_db
@@ -443,13 +444,24 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
         profile_id = attrs.get(n1kv_profile.PROFILE_ID)
         profile_id_set = attributes.is_attr_set(profile_id)
         if not profile_id_set:
-            msg = _("n1kv:profile_id does not exist")
-            raise q_exc.InvalidInput(error_message=msg)
+            #msg = _("n1kv:profile_id does not exist")
+            #raise q_exc.InvalidInput(error_message=msg)
+            dummy_network_profile = self._create_dummy_network_profile()
+            profile_id = dummy_network_profile['id']
         if not self.network_profile_exists(context, profile_id):
-            msg = _("n1kv:profile_id does not exist")
-            raise q_exc.InvalidInput(error_message=msg)
+            raise cisco_exceptions.NetworkProfileIdNotFound(profile_id)
 
         return (profile_id)
+
+    def _create_dummy_network_profile(self):
+        """
+        Create a fake network profile object.
+        :return: network profile object
+        """
+        profile = {'name': 'dummy_profile',
+                   'segment_type': 'vlan',
+                   'segment_range': '0-0'}
+        return n1kv_db_v2.create_network_profile(profile)
 
     def _process_policy_profile(self, context, attrs):
         """ Validates whether policy profile exists """
