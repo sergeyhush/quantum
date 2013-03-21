@@ -429,6 +429,15 @@ def update_vm_network(name, port_count):
     except exc.NoResultFound:
         raise c_exc.VMNetworkNotFound(name=name)
 
+def delete_vm_network(profile_id, network_id):
+    session = db.get_session()
+    vm_network = get_vm_network(profile_id, network_id)
+    with session.begin(subtransactions=True):
+        session.delete(vm_network)
+        session.query(n1kv_models_v2.N1kVmNetwork).filter_by(name=vm_network['name']).delete()
+    return vm_network
+
+
 def create_network_profile(profile):
     """
      Create Network Profile

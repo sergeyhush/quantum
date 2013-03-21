@@ -275,11 +275,11 @@ class Client(object):
         """
         return self._post(self.port_path % (port), body=body)
 
-    def delete_n1kv_port(self, port, **_params):
+    def delete_n1kv_port(self, vm_network_name, port_id, **_params):
         """
         Deletes a Port on the VSM
         """
-        return self._delete(self.port_path % (port))
+        return self._delete(self.port_path % ((vm_network_name), (port_id)))
 
     def __init__(self, **kwargs):
         """ Initialize a new client for the Plugin v2.0. """

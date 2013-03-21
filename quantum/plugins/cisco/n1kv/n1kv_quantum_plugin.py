@@ -606,9 +606,20 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
             port_count = port_count - 1
         return port_count
 
-    def _send_delete_port_request(self, id):
+    def _send_delete_port_request(self, context, id):
         """ Send Delete Port request to VSM """
         LOG.debug('_send_delete_port_request: %s', id)
+        port = self.get_port(context, id)
+        vm_network = n1kv_db_v2.get_vm_network(port[n1kv_profile.PROFILE_ID],
+                                               port['network_id'])
+        vm_network['port_count'] = self._update_port_count(vm_network['port_count'],
+                                                           action='decrement')
+        n1kvclient = n1kv_client.Client()
+        n1kvclient.delete_n1kv_port(vm_network['name'], id)
+        if vm_network['port_count'] == 0:
+            n1kv_db_v2.delete_vm_network(port[n1kv_profile.PROFILE_ID],
+                                         port['network_id'])
+            n1kvclient.delete_vm_network(vm_network['name'])
 
     def _get_segmentation_id(self, context, id):
         """ Send Delete Port request to VSM """
@@ -811,7 +822,7 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
 
     def delete_port(self, context, id):
         """ Delete port """
-        self._send_delete_port_request(id)
+        self._send_delete_port_request(context, id)
         return super(N1kvQuantumPluginV2, self).delete_port(context, id)
 
     def get_port(self, context, id, fields=None):
