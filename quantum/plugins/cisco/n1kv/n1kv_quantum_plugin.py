@@ -614,6 +614,7 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
                                                port['network_id'])
         vm_network['port_count'] = self._update_port_count(vm_network['port_count'],
                                                            action='decrement')
+        n1kv_db_v2.update_vm_network(vm_network['name'], vm_network['port_count'])
         n1kvclient = n1kv_client.Client()
         n1kvclient.delete_n1kv_port(vm_network['name'], id)
         if vm_network['port_count'] == 0:
