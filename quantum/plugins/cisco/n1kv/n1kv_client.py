@@ -261,6 +261,14 @@ class Client(object):
                 }
         return self._post(self.vm_networks_path, body=body, params=_params)
 
+    def delete_vm_network(self, vm_network_name):
+        """
+        Deletes a VM Network on the VSM
+        :param vm_network_name:
+        :return:
+        """
+        return self._delete(self.vm_network_path % (vm_network_name))
+
     def create_n1kv_port(self, port, name, **_params):
         """
         Creates a Port on the VSM
@@ -268,6 +276,7 @@ class Client(object):
         body = {'id': port['id'],
                 'macAddress': port['mac_address']}
         return self._post(self.ports_path % (name), body=body, params=_params)
+
 
     def update_n1kv_port(self, port, body):
         """
