@@ -128,6 +128,15 @@ class Client(object):
                 'groupIp': network[n1kv_profile.MULTICAST_IP], }
         return self._post(self.bridge_domains_path, body=body, params=_params)
 
+    def delete_bridge_domain(self, name, **_params):
+        """
+        Deletes a Bridge Domain on VSM
+        :param network:
+        :param _params:
+        :return:
+        """
+        return self._delete(self.bridge_domain_path % (name))
+
     def create_network_segment(self, network, profile, **_params):
         """
         Creates a Nework Segment on the VSM
