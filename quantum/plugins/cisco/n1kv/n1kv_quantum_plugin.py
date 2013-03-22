@@ -537,6 +537,9 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
         """ Send Delete network request to VSM """
         LOG.debug('_send_delete_network_request: %s', network['id'])
         n1kvclient = n1kv_client.Client()
+        if network[provider.NETWORK_TYPE] == const.TYPE_VXLAN:
+            name = network['name'] + '_bd'
+            n1kvclient.delete_bridge_domain(name)
         n1kvclient.delete_network_segment(network['name'])
 
     def _send_create_subnet_request(self, context, subnet):
