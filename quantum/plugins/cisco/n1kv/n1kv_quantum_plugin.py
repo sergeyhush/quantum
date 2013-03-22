@@ -454,6 +454,7 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
     def _create_dummy_network_profile(self):
         """
         Create a fake network profile object.
+        Use vlan range 3968-4047 which is allocated for internal use.
         :return: network profile object
         """
         profile = n1kv_db_v2.get_network_profile_by_name('dummy_profile')
@@ -462,7 +463,7 @@ class N1kvQuantumPluginV2(db_base_plugin_v2.QuantumDbPluginV2,
         else:
             profile = {'name': 'dummy_profile',
                        'segment_type': 'vlan',
-                       'segment_range': '0-4094'}
+                       'segment_range': '3968-4047'}
             return n1kv_db_v2.create_network_profile(profile)
 
     def _process_policy_profile(self, context, attrs):
